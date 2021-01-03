@@ -1,8 +1,13 @@
-# test
+# PGAPlatform
+
+An experimental platform for the data-driven exploration of procedural generation algorithms.
 
 ## Build Setup
 
 ```bash
+# go to app directory
+$ cd app
+
 # install dependencies
 $ npm install
 
