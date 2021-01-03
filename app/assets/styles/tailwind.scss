@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1 {
+    @apply text-5xl;
+  }
+  h2 {
+    @apply text-3xl;
+  }
+  h3 {
+    @apply text-xl;
+  }
+  h4 {
+    @apply text-sm leading-none mb-5 md:text-base lg:text-lg;
+  }
+
+  p {
+    @apply mt-2;
+  }
+
+  .copy {
+    @apply text-sm;
+  }
+
+  .copy-sm {
+    @apply text-xs;
+  }
+
+  .error {
+    @apply text-sm font-semibold;
+  }
+
+  .btn-icon {
+    width: 1.25em;
+    height: 1.25em;
+  }
+
+  .text-icon-sm {
+    @apply w-5 h-5;
+  }
+
+  // .sprite-outline {
+  //   @apply w-full h-full;
+  // }
+}
