@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@nuxt/typescript-runtime": "^2.0.0",
-    "@nuxtjs/svg-sprite": "^0.5.2",
     "core-js": "^3.6.5",
     "moment": "^2.29.1",
     "nuxt": "^2.14.6",
@@ -29,6 +28,7 @@
     "@nuxtjs/eslint-config-typescript": "^3.0.0",
     "@nuxtjs/eslint-module": "^2.0.0",
     "@nuxtjs/stylelint-module": "^4.0.0",
+    "@nuxtjs/svg": "^0.1.12",
     "@nuxtjs/tailwindcss": "^3.1.0",
     "@tailwindcss/postcss7-compat": "^2.0.2",
     "@types/jest": "^26.0.19",

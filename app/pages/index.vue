@@ -1,11 +1,8 @@
 <template>
-  <div class="min-h-screen flex relative md:grid md:grid-cols-12">
-    <!-- <notifications group="all" position="top left" /> -->
+  <div class="h-screen relative">
     <NotificationStack />
-    <Visualization class="w-full md:col-span-8" />
-    <Configurator
-      class="absolute top-0 right-0 w-72 h-screen md:static md:w-full md:col-span-4"
-    />
+    <Visualization class="h-full" />
+    <Configurator class="absolute top-0 right-0 w-48 md:w-96 h-screen" />
   </div>
 </template>
 

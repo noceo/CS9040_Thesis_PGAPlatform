@@ -1,7 +1,6 @@
 <template>
-  <div class="visualization flex justify-center items-center bg-gray-200">
-    <!-- <canvas></canvas> -->
-    <h2>Visualization</h2>
+  <div class="visualization">
+    <canvas></canvas>
   </div>
 </template>
 
@@ -9,9 +8,3 @@
 import Vue from 'vue'
 export default Vue.extend({})
 </script>
-
-<style lang="postcss" scoped>
-.content {
-  margin-top: 2px;
-}
-</style>

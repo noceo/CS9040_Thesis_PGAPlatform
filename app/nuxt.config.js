@@ -37,13 +37,13 @@ export default {
   ],
 
   // Modules (https://go.nuxtjs.dev/config-modules)
-  modules: [['@nuxtjs/svg-sprite']],
+  modules: ['@nuxtjs/svg'],
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {},
 
   tailwindcss: {
-    cssPath: '~/assets/styles/tailwind.scss',
+    cssPath: '~/assets/styles/tailwind.css',
     configPath: '~/tailwind.config.js',
   },
 }

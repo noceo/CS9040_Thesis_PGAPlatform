@@ -12,19 +12,18 @@
         @dragleave="onDragLeave"
       >
         <label
-          class="inline-flex flex-wrap-reverse justify-center items-center w-full px-4 text-pink-500 text-center cursor-pointer"
+          class="inline-flex flex-wrap-reverse justify-center items-center w-full px-4 text-sm text-pink-500 text-center cursor-pointer"
           :class="[file ? 'py-3' : 'py-6']"
         >
           <template v-if="file">
-            <span class="text-sm mr-2 pointer-events-none">{{ fileName }}</span>
+            <span class="mr-2 pointer-events-none">{{ fileName }}</span>
           </template>
           <template v-else>
-            <span class="text-sm mr-2 pointer-events-none"
+            <span class="mr-2 pointer-events-none"
               >Select or drop a file here</span
             >
-            <div class="text-icon">
-              <svg-icon name="outline/outline-document-add" class="btn-icon" />
-            </div>
+            <DocumentIcon class="text-icon" />
+
             <input
               ref="fileInput"
               class="hidden"
@@ -37,25 +36,26 @@
       </div>
       <span
         ref="progressBar"
-        class="progress-bar absolute top-0 left-0 h-full w-0 overflow-hidden bg-pink-500 opacity-30 rounded-lg"
+        class="progress-bar absolute top-0 left-0 h-full w-0 overflow-hidden bg-pink-500 opacity-30 rounded-lg pointer-events-none"
       />
       <PingNotifier
         class="z-10 absolute top-0 left-0 transform-gpu -translate-x-1/4 -translate-y-1/4"
       />
       <!-- <div class="progress-bar w-1/5 bg-white border rounded-lg"></div> -->
     </div>
-    <BaseButton
-      v-if="file"
-      icon-name="outline/outline-x"
-      class="flex-shrink-0"
-      @click="removeFile"
-    />
+    <BaseButton v-if="file" class="flex-shrink-0" @click="removeFile">
+      <XIcon />
+    </BaseButton>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
+import DocumentIcon from '~/assets/icons/outline/document-add.svg?inline'
+import XIcon from '~/assets/icons/outline/x.svg?inline'
 export default Vue.extend({
+  name: 'FileChooser',
+  components: { DocumentIcon, XIcon },
   data() {
     return {
       file: null as File | null,

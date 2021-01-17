@@ -1,6 +1,6 @@
 <template>
   <div class="error-text error flex items-start rounded p-2">
-    <div class="btn-icon flex-shrink-0 mr-2">
+    <div class="text-icon flex-shrink-0 mr-2">
       <svg-icon name="outline/outline-exclamation-circle" />
     </div>
     <p class="error-copy flex-auto">

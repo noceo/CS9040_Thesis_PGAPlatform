@@ -1,5 +1,5 @@
 <template>
-  <div class="data-browser flex flex-col space-y-5">
+  <div class="data-browser">
     <!-- Statt dem statischen array muss hier ein Verweis auf den Store gemacht werden -->
     <ButtonStrip :buttons="buttons" :active="mode" @click="setDataMode" />
     <transition name="fade">

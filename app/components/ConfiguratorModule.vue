@@ -1,16 +1,17 @@
 <template>
   <div
-    ref="configuratorModule"
+    ref="configuratorModule relative"
     class="configurator-module w-full pl-3 pr-5 border-b-2 border-gray-200"
   >
     <BaseButton
       class="expand-button -ml-3 -mr-5 hover:pt-1"
-      icon-name="outline/outline-x"
+      :copy="headline"
+      align="left"
       :rotate="opened ? 0 : 45"
       rotation-direction="left"
       @click="toggleExpand"
     >
-      {{ name }}
+      <XIcon />
     </BaseButton>
 
     <div
@@ -24,9 +25,12 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import XIcon from '~/assets/icons/outline/x.svg?inline'
 export default Vue.extend({
+  name: 'ConfiguratorModule',
+  components: { XIcon },
   props: {
-    name: {
+    headline: {
       type: String,
       required: true,
     },
@@ -67,6 +71,11 @@ export default Vue.extend({
       childList: true,
       subtree: true,
     })
+
+    // window.addEventListener('resize', () => {
+    //   configArea.style.maxHeight = `${configArea.scrollHeight}px`
+    // })
+    // window.dispatchEvent(new Event('resize'))
   },
   beforeDestroy() {
     this.mutationObserver.disconnect()
@@ -92,12 +101,16 @@ export default Vue.extend({
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .expand-button {
   transition: padding 0.15s ease-in-out;
 }
 
 .configuration-area {
   transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+.configuration-area > div {
+  @apply flex flex-col space-y-5;
 }
 </style>
