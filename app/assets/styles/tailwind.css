@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  body {
+    user-select: none;
+  }
+
   h1 {
     @apply text-5xl;
   }

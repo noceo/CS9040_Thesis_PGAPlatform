@@ -6,14 +6,16 @@ export interface IRootState {
   version: string
 }
 
+export const store = new Vuex.Store({
+  state: {
+    version: '1.0.0',
+  },
+  modules: {
+    global,
+  },
+  plugins: [new VuexPersistence().plugin],
+})
+
 export default () => {
-  return new Vuex.Store<IRootState>({
-    state: {
-      version: '1.0.0',
-    },
-    modules: {
-      global,
-    },
-    plugins: [new VuexPersistence<IRootState>().plugin],
-  })
+  return store
 }

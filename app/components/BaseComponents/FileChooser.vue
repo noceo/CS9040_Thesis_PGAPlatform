@@ -15,13 +15,17 @@
           class="inline-flex flex-wrap-reverse justify-center items-center w-full px-4 text-sm text-pink-500 text-center cursor-pointer"
           :class="[file ? 'py-3' : 'py-6']"
         >
-          <template v-if="file">
+          <template v-if="fileIsProcessed">
             <span class="mr-2 pointer-events-none">{{ fileName }}</span>
           </template>
+          <template v-else-if="isLoading">
+            <span class="mr-2 pointer-events-none"> Loading </span>
+            <LoadingSpinner class="text-icon w-3 h-3" />
+          </template>
           <template v-else>
-            <span class="mr-2 pointer-events-none"
-              >Select or drop a file here</span
-            >
+            <span class="mr-2 pointer-events-none">
+              Select or drop a file here
+            </span>
             <DocumentIcon class="text-icon" />
 
             <input
@@ -34,14 +38,9 @@
           </template>
         </label>
       </div>
-      <span
-        ref="progressBar"
-        class="progress-bar absolute top-0 left-0 h-full w-0 overflow-hidden bg-pink-500 opacity-30 rounded-lg pointer-events-none"
-      />
       <PingNotifier
         class="z-10 absolute top-0 left-0 transform-gpu -translate-x-1/4 -translate-y-1/4"
       />
-      <!-- <div class="progress-bar w-1/5 bg-white border rounded-lg"></div> -->
     </div>
     <BaseButton v-if="file" class="flex-shrink-0" @click="removeFile">
       <XIcon />
@@ -51,8 +50,10 @@
 
 <script lang="ts">
 import Vue from 'vue'
+
 import DocumentIcon from '~/assets/icons/outline/document-add.svg?inline'
 import XIcon from '~/assets/icons/outline/x.svg?inline'
+
 export default Vue.extend({
   name: 'FileChooser',
   components: { DocumentIcon, XIcon },
@@ -61,7 +62,7 @@ export default Vue.extend({
       file: null as File | null,
       fileIsDraggedOver: false,
       isLoading: false as boolean,
-      loadProgress: 0 as Number,
+      fileIsProcessed: false as boolean,
     }
   },
   computed: {
@@ -96,35 +97,40 @@ export default Vue.extend({
         return
       }
 
-      // TODO: auslagern in NotificationService
+      this.fileIsProcessed = false
+
       if (files.length > 1) {
-        this.$notify({
-          group: 'all',
-          type: 'error',
+        this.$services.notifications.error({
           title: 'Import Error',
           text: 'Only one file allowed.',
         })
         return
       }
       if (files.length === 1 && files[0].name.split('.').pop() !== 'csv') {
-        this.$notify({
-          group: 'all',
-          type: 'error',
+        this.$services.notifications.error({
           title: 'Import Error',
           text: 'Wrong file format. Only .csv allowed.',
         })
         return
       }
       this.file = files[0]
-      // TODO: trigger parse process here/ register callback for progressBar
-      // if (parseProcess(file)) {
-      // TODO: commit to store
-      // }
-      this.loadProgress = 50 // 0
+
+      this.isLoading = true
+      this.$services.dataManager
+        .processNewFile(this.file, { header: true })
+        .then(() => {
+          this.fileIsProcessed = true
+        })
+        .catch(() => {
+          this.file = null
+        })
+        .finally(() => {
+          this.isLoading = false
+        })
       this.$emit('fileAdded', files)
     },
     removeFile(): void {
-      this.loadProgress = 0
+      this.fileIsProcessed = false
       this.file = null
     },
   },

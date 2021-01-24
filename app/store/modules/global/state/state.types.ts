@@ -1,4 +1,4 @@
-import { IDataRowData } from '~/model'
+import { IDataField, IDataRowData } from '~/model'
 
 export enum DataMode {
   STATIC = 'STATIC',
@@ -9,4 +9,5 @@ export interface IGlobalState {
   // here all properties that belong to the global state get defined
   dataMode: DataMode
   currentDataRow?: IDataRowData
+  dataFields?: Array<IDataField>
 }
