@@ -5,4 +5,6 @@ export const state: IGlobalState = {
   dataMode: DataMode.STATIC,
   currentDataRow: undefined,
   dataFields: undefined,
+  vizParameters: undefined,
+  visualizationActive: false,
 }

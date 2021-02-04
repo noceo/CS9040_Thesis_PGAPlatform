@@ -10,20 +10,14 @@
     <div class="paramgroup">
       <h4>Groupname</h4>
       <div class="bg-white border rounded-md">
-        <ValueSlider :copy="'Test'" :min-max="[0, 1]" :interval="0.01" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
-        <ValueSlider :copy="'Test'" />
+        <ValueSlider
+          v-for="(param, key) in GET_VIZ_PARAMETERS"
+          :key="key"
+          :copy="param.name"
+          :value="param._value"
+          :min-max="[param._min, param._max]"
+          :interval="0.01"
+        />
       </div>
     </div>
   </div>
@@ -31,7 +25,15 @@
 
 <script lang="ts">
 import Vue from 'vue'
-export default Vue.extend({})
+import { mapGetters } from 'vuex'
+import { GlobalStoreGetter } from '~/store/modules/global/getters/getters.types'
+
+export default Vue.extend({
+  name: 'ParameterAdjusting',
+  computed: {
+    ...mapGetters('global', [GlobalStoreGetter.GET_VIZ_PARAMETERS]),
+  },
+})
 </script>
 
 <style lang="postcss" scoped>

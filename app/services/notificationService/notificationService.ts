@@ -7,15 +7,18 @@ import {
 
 @injectable()
 export class NotificationService implements INotificationService {
-  readonly defaultSuccessMessage: INotification
-  readonly defaultErrorMessage: INotification
+  private _defaultSuccessMessage: INotification
+  private _defaultErrorMessage: INotification
+  private _notificationDuration: number
 
   constructor(
     defaultSuccessMessage: INotification,
-    defaultErrorMessage: INotification
+    defaultErrorMessage: INotification,
+    notificationDuration: number
   ) {
-    this.defaultSuccessMessage = defaultSuccessMessage
-    this.defaultErrorMessage = defaultErrorMessage
+    this._defaultSuccessMessage = defaultSuccessMessage
+    this._defaultErrorMessage = defaultErrorMessage
+    this._notificationDuration = notificationDuration
   }
 
   success(notification: INotification): void {
@@ -23,28 +26,44 @@ export class NotificationService implements INotificationService {
       ...notification,
       group: 'all',
       type: 'success',
-      duration: 100000,
+      duration: this._notificationDuration,
     })
   }
 
   error(notification: INotification): void {
-    Vue.notify({ ...notification, group: 'all', type: 'error' })
+    Vue.notify({
+      ...notification,
+      group: 'all',
+      type: 'error',
+      duration: this._notificationDuration,
+    })
   }
 
   alert(notification: INotification): void {
-    Vue.notify({ ...notification, group: 'all', type: 'alert' })
+    Vue.notify({
+      ...notification,
+      group: 'all',
+      type: 'alert',
+      duration: this._notificationDuration,
+    })
   }
 
   info(notification: INotification): void {
-    Vue.notify({ ...notification, group: 'all', type: 'info' })
+    Vue.notify({
+      ...notification,
+      group: 'all',
+      type: 'info',
+      duration: this._notificationDuration,
+    })
   }
 
   defaultSuccess(): void {
     Vue.notify({
       group: 'all',
       type: 'success',
-      title: this.defaultSuccessMessage.title,
-      text: this.defaultSuccessMessage.text,
+      title: this._defaultSuccessMessage.title,
+      text: this._defaultSuccessMessage.text,
+      duration: this._notificationDuration,
     })
   }
 
@@ -52,8 +71,9 @@ export class NotificationService implements INotificationService {
     Vue.notify({
       group: 'all',
       type: 'error',
-      title: this.defaultErrorMessage.title,
-      text: this.defaultErrorMessage.text,
+      title: this._defaultErrorMessage.title,
+      text: this._defaultErrorMessage.text,
+      duration: this._notificationDuration,
     })
   }
 }

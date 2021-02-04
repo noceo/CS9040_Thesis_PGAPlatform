@@ -1,4 +1,5 @@
 import { IDataField, IDataRowData } from '~/model'
+import { VizParameter } from '~/model/vizParameter/vizParameter'
 
 export enum DataMode {
   STATIC = 'STATIC',
@@ -10,4 +11,6 @@ export interface IGlobalState {
   dataMode: DataMode
   currentDataRow?: IDataRowData
   dataFields?: Array<IDataField>
+  vizParameters?: Array<VizParameter>
+  visualizationActive: boolean
 }

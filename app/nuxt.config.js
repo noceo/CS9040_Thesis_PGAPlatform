@@ -23,7 +23,7 @@ export default {
     { src: '~/plugins/vuex-persist', ssr: false },
     { src: '~/plugins/vue-slider-component', ssr: false },
     { src: '~/plugins/services', ssr: false },
-    { src: '~/plugins/i18n', ssr: false },
+    // { src: '~/plugins/i18n', ssr: false },
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
@@ -41,26 +41,26 @@ export default {
 
   // Modules (https://go.nuxtjs.dev/config-modules)
   modules: [
-    [
-      'nuxt-i18n',
-      {
-        locales: Appconfig.locales.available,
-        lazy: true,
-        langDir: 'locales/',
-        defaultLocale: Appconfig.locales.default.code,
-        detectBrowserLanguage: false,
-        vueI18n: {
-          fallbackLocale: 'en',
-          messages: () => {
-            return Appconfig.locales.available.reduce((obj, locale) => {
-              obj[locale] = require('./locales/' + locale.file)
-              return obj
-            }, {})
-          },
-        },
-        parsePages: false,
-      },
-    ],
+    // [
+    //   'nuxt-i18n',
+    //   {
+    //     locales: Appconfig.locales.available,
+    //     lazy: true,
+    //     langDir: 'locales/',
+    //     defaultLocale: Appconfig.locales.default.code,
+    //     detectBrowserLanguage: false,
+    //     vueI18n: {
+    //       fallbackLocale: 'en',
+    //       messages: () => {
+    //         return Appconfig.locales.available.reduce((obj, locale) => {
+    //           obj[locale] = require('./locales/' + locale.file)
+    //           return obj
+    //         }, {})
+    //       },
+    //     },
+    //     parsePages: false,
+    //   },
+    // ],
     '@nuxtjs/svg',
   ],
 

@@ -8,8 +8,8 @@
           { 'border-dashed': !file },
         ]"
         @drop="onDrop"
-        @dragover="onDragOver"
-        @dragleave="onDragLeave"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
       >
         <label
           class="inline-flex flex-wrap-reverse justify-center items-center w-full px-4 text-sm text-pink-500 text-center cursor-pointer"
@@ -70,18 +70,11 @@ export default Vue.extend({
       return this.file?.name.split(/(\\|\/)/g).pop() || ''
     },
   },
-  watch: {
-    loadProgress(newValue) {
-      ;(this.$refs.progressBar as HTMLElement).style.width = `${newValue}%`
-    },
-  },
   methods: {
-    onDragOver(event: DragEvent): void {
-      event.preventDefault()
+    onDragOver(): void {
       this.fileIsDraggedOver = true
     },
-    onDragLeave(event: DragEvent): void {
-      event.preventDefault()
+    onDragLeave(): void {
       this.fileIsDraggedOver = false
     },
     onDrop(event: DragEvent): void {
@@ -127,7 +120,6 @@ export default Vue.extend({
         .finally(() => {
           this.isLoading = false
         })
-      this.$emit('fileAdded', files)
     },
     removeFile(): void {
       this.fileIsProcessed = false

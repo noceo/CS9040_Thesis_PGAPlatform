@@ -1,6 +1,4 @@
-import { IVizParameterConstraint } from '../vizParameterConstraint/vizParameterConstraint.types'
-
 export interface IVizParameter {
+  readonly id: string
   readonly name: string
-  readonly constraints?: Array<IVizParameterConstraint>
 }

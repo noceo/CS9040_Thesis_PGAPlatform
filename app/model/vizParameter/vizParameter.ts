@@ -1,12 +1,18 @@
-import { IVizParameterConstraint } from '../vizParameterConstraint/vizParameterConstraint.types'
+import { IStoreable } from '../helpers/IStorable'
 import { IVizParameter } from './vizParameter.types'
 
-export class VizParameter implements IVizParameter {
+export abstract class VizParameter implements IVizParameter, IStoreable {
+  readonly id: string
   readonly name: string
-  readonly constraints?: Array<IVizParameterConstraint>
+  protected _value: any
 
   constructor(data: IVizParameter) {
+    this.id = data.id
     this.name = data.name
-    this.constraints = data.constraints
   }
+
+  abstract get value(): any
+  abstract set value(newValue: any)
+
+  abstract toStoreFormat(): object
 }

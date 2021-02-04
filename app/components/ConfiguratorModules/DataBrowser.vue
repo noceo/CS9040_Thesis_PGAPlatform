@@ -4,7 +4,6 @@
     <ButtonStrip :buttons="buttons" :active="mode" @click="setDataMode" />
     <transition name="fade">
       <FileChooser v-if="mode === 'static'" />
-      <!-- <ButtonStrip :buttons="buttons" :active="dataMode" @click="setDataMode" /> -->
     </transition>
   </div>
 </template>

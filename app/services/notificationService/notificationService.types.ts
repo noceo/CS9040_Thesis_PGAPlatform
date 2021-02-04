@@ -4,9 +4,6 @@ export interface INotification {
 }
 
 export interface INotificationService {
-  readonly defaultSuccessMessage: INotification
-  readonly defaultErrorMessage: INotification
-
   defaultSuccess(): void
   defaultError(): void
 

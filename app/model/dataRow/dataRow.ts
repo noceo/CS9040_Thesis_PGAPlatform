@@ -1,5 +1,5 @@
 import { IDataField } from '../dataField'
-import { ISerializable } from '../interfaces/ISerializable'
+import { ISerializable } from '../helpers/ISerializable'
 import { IDataRow, IDataRowData } from './dataRow.types'
 
 export class DataRow implements IDataRow, ISerializable {
