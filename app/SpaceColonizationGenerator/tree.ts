@@ -1,7 +1,7 @@
 import {
   BufferGeometry,
-  DoubleSide,
   Float32BufferAttribute,
+  Material,
   Mesh,
   MeshPhongMaterial,
   Points,
@@ -10,51 +10,69 @@ import {
   Vector3,
 } from 'three'
 import _ from 'lodash'
+import { RBush3D } from 'rbush-3d'
 import { Attractor } from './attractor'
-import { BranchNode } from './branchNode'
-import { randomPointsInCube, randomPointsInSphere, Vertex } from './helpers'
+import { BranchNode, NeighbourSearchObject } from './branchNode'
 
 export class Tree {
   // private _attractorSegments: Array<Array<Attractor>>
   // private _attractorGeometries: Array<BufferGeometry>
   // private _branches: Array<BranchNode>
+  private _name: string
   private _scene: Scene
+  private _position: Vector3
   private _root!: BranchNode
   private _rootBranch!: Array<BranchNode>
   private _minDistance: number
   private _maxDistance: number
   private _attractors: Array<Attractor>
   private _branches: Array<Array<BranchNode>>
+  private _branchNodes: Array<BranchNode>
+  private _areaLookUp: RBush3D
   private _branchGeometries: Array<BufferGeometry>
   private _isCreated: boolean
   private _drawRange: number
   private _branchDetail: number
+  private _branchMaterial: Material
 
-  constructor(scene: Scene, branchDetail = 6) {
+  constructor(
+    scene: Scene,
+    position: Vector3,
+    attractors: Array<Vector3>,
+    name: string,
+    branchDetail = 6
+  ) {
+    this._name = name
     this._scene = scene
+    this._position = position
+    this._root = new BranchNode(null, position, new Vector3(0, 1, 0), 4)
     this._minDistance = 5
     this._maxDistance = 20
     this._attractors = []
+    attractors.forEach((attractor) => {
+      this._attractors.push(
+        new Attractor(attractor.x, attractor.y, attractor.z)
+      )
+    })
     this._branches = []
+    this._branchNodes = []
+    this._areaLookUp = new RBush3D()
     this._branchGeometries = []
     this._isCreated = false
     this._drawRange = 0
     this._branchDetail = branchDetail
+    this._branchMaterial = new MeshPhongMaterial({
+      vertexColors: true,
+    })
     this.init()
   }
 
   init(): void {
     // const randomPoints = randomPointsInSphere(30, 10)
-    const randomPoints2 = randomPointsInSphere(300, 50)
     // this.generateAttractorSegment(randomPoints, new Vector3(0, 50, 0))
-    this.generateAttractorSegment(randomPoints2, new Vector3(0, 80, 0))
+    this.generateAttractors()
     // add branches from root until it reaches the first attractor's min range
-    this._root = new BranchNode(
-      null,
-      new Vector3(0, 0, 0),
-      new Vector3(0, 1, 0),
-      2
-    )
+    this._areaLookUp.insert(this._root)
     this._rootBranch = [this._root]
     this._branches.push(this._rootBranch)
 
@@ -62,7 +80,13 @@ export class Tree {
     let currentNode = this._root
     while (!foundNearAttractor) {
       for (let i = 0; i < this._attractors.length; i++) {
-        const distance = currentNode.pos.distanceTo(this._attractors[i])
+        const distance = currentNode.pos.distanceTo(
+          new Vector3(
+            this._attractors[i].x,
+            this._attractors[i].y,
+            this._attractors[i].z
+          )
+        )
         if (distance < this._maxDistance) {
           foundNearAttractor = true
           break
@@ -71,8 +95,10 @@ export class Tree {
       if (!foundNearAttractor) {
         currentNode = currentNode.nextNode()
         this._rootBranch.push(currentNode)
+        this._areaLookUp.insert(currentNode)
       }
     }
+
     // const vertices: Array<Vector3> = [
     //   new Vector3(0, 0, 0),
     //   new Vector3(5, 10, 0),
@@ -134,21 +160,44 @@ export class Tree {
       const attractor = this._attractors[i]
       let closestNode = null
       let closestDistance = this._maxDistance
-      for (let j = 0; j < this._branches.length; j++) {
-        const branch = this._branches[j]
-        for (let k = 0; k < branch.length; k++) {
-          const node = branch[k]
-          const distance = attractor.distanceTo(node.pos)
-          if (distance < this._minDistance) {
-            attractor.reached = true
-            closestNode = null
-            break
-          } else if (distance < closestDistance) {
-            closestNode = node
-            closestDistance = distance
-          }
+      const query = this.getNeighbourSearchObject(
+        attractor.x,
+        attractor.y,
+        attractor.z,
+        this._maxDistance
+      )
+
+      const nearBranchNodes = this._areaLookUp.search(
+        query
+      ) as Array<BranchNode>
+
+      for (let j = 0; j < nearBranchNodes.length; j++) {
+        const node = nearBranchNodes[j]
+        const distance = attractor.distanceTo(node.pos)
+        if (distance < this._minDistance) {
+          attractor.reached = true
+          closestNode = null
+          break
+        } else if (distance < closestDistance) {
+          closestNode = node
+          closestDistance = distance
         }
       }
+      // for (let j = 0; j < this._branches.length; j++) {
+      //   const branch = this._branches[j]
+      //   for (let k = 0; k < branch.length; k++) {
+      //     const node = branch[k]
+      //     const distance = attractor.distanceTo(node.pos)
+      //     if (distance < this._minDistance) {
+      //       attractor.reached = true
+      //       closestNode = null
+      //       break
+      //     } else if (distance < closestDistance) {
+      //       closestNode = node
+      //       closestDistance = distance
+      //     }
+      //   }
+      // }
 
       if (closestNode !== null) {
         const newDirection = attractor.clone().sub(closestNode.pos)
@@ -183,38 +232,27 @@ export class Tree {
               newBranchRootNode.reset()
               newNode.parent = newBranchRootNode
               this._branches.push([newBranchRootNode, newNode])
+              this._areaLookUp.insert(newNode)
             } else {
               branch.push(newNode)
+              this._areaLookUp.insert(newNode)
             }
           }
           node.reset()
         }
       }
     }
-    // console.log('RUNNING')
     return true
   }
 
-  generateAttractorSegment(
-    points: Array<Vertex>,
-    translateVector: Vector3
-  ): void {
-    for (let i = 0; i < points.length; i++) {
-      this._attractors.push(
-        new Attractor(
-          points[i][0] + translateVector.x,
-          points[i][1] + translateVector.y,
-          points[i][2] + translateVector.z
-        )
-      )
-    }
-
+  generateAttractors(): void {
+    // create attractor points
     const attractorGeometry = new BufferGeometry()
     const positions: Array<number> = []
-    this._attractors.forEach((element) => {
-      positions.push(element.x)
-      positions.push(element.y)
-      positions.push(element.z)
+    this._attractors.forEach((attractor) => {
+      positions.push(attractor.x)
+      positions.push(attractor.y)
+      positions.push(attractor.z)
     })
     attractorGeometry.setAttribute(
       'position',
@@ -223,7 +261,8 @@ export class Tree {
 
     const attractorSystem = new Points(
       attractorGeometry,
-      new PointsMaterial({ color: 0x000000 })
+      // eslint-disable-next-line unicorn/number-literal-case
+      new PointsMaterial({ color: 0xffffff })
     )
     this._scene.add(attractorSystem)
   }
@@ -325,11 +364,10 @@ export class Tree {
       new Float32BufferAttribute(_.clone(colors), 3)
     )
 
-    console.log('GEOMETRY', geometry.getAttribute('position').itemSize)
-    const material = new MeshPhongMaterial({
-      vertexColors: true,
-    })
-    const mesh = new Mesh(geometry, material)
+    // const material = new MeshPhongMaterial({
+    //   vertexColors: true,
+    // })
+    const mesh = new Mesh(geometry, this._branchMaterial)
     this._scene.add(mesh)
     return mesh
   }
@@ -390,7 +428,7 @@ export class Tree {
       const normal = dir.clone().normalize()
       vertices.push(ringVertex.x, ringVertex.y, ringVertex.z)
       normals.push(normal.x, normal.y, normal.z)
-      colors.push(0.65, 0.16, 0.16)
+      colors.push(1, 0.2, 1)
     }
 
     // if it is the last segment include midVertex
@@ -408,11 +446,13 @@ export class Tree {
         const ringVertex = midVertex.clone().add(dir)
         vertices.push(ringVertex.x, ringVertex.y, ringVertex.z)
         normals.push(up.x, up.y, up.z)
-        colors.push(0.65, 0.16, 0.16)
+        colors.push(1, 1, 1)
       }
+
+      // fan segment
       vertices.push(midVertex.x, midVertex.y, midVertex.z)
       normals.push(up.x, up.y, up.z)
-      colors.push(0.65, 0.16, 0.16)
+      colors.push(1, 1, 1)
     }
   }
 
@@ -431,4 +471,35 @@ export class Tree {
   //   const geometry = this._branchGeometries[index]
   //   geometry.setDrawRange(0, geometry.drawRange.count + 1 * this._branchDetail)
   // }
+
+  private getLookUpItem(x: number, y: number, z: number) {
+    return {
+      minX: x,
+      minY: y,
+      minZ: z,
+      maxX: x,
+      maxY: y,
+      maxZ: z,
+    }
+  }
+
+  private getNeighbourSearchObject(
+    x: number,
+    y: number,
+    z: number,
+    radius: number
+  ): NeighbourSearchObject {
+    return {
+      minX: x - radius,
+      minY: y - radius,
+      minZ: z - radius,
+      maxX: x + radius,
+      maxY: y + radius,
+      maxZ: z + radius,
+    }
+  }
+
+  get position(): Vector3 {
+    return this._position
+  }
 }

@@ -1,6 +1,15 @@
 import { Vector3 } from 'three'
 
-export class BranchNode {
+export interface NeighbourSearchObject {
+  minX: number
+  minY: number
+  minZ: number
+  maxX: number
+  maxY: number
+  maxZ: number
+}
+
+export class BranchNode implements NeighbourSearchObject {
   private _parent: BranchNode | null
   private _pos: Vector3
   private _dir: Vector3
@@ -9,12 +18,17 @@ export class BranchNode {
   private _attractorCount: number
   private _childCount: number
 
+  minX: number
+  minY: number
+  minZ: number
+  maxX: number
+  maxY: number
+  maxZ: number
+
   constructor(
     parent: BranchNode | null,
     pos: Vector3,
     dir: Vector3,
-    // geometry: BufferGeometry,
-    // material: Material | Array<Material>,
     length: number
   ) {
     this._parent = parent
@@ -26,17 +40,13 @@ export class BranchNode {
     this._length = length
     this._attractorCount = 0
     this._childCount = 0
-    // const renderPosition = pos
-    //   .clone()
-    //   .addScaledVector(this._dir, this._length / 2)
-    // this.position.set(renderPosition.x, renderPosition.y, renderPosition.z)
-    // const rotationAxis = new Vector3()
-    // rotationAxis.crossVectors(this._dir, new Vector3(0, 1, 0))
-    // const angle = this._dir.y < 0 ? Math.PI / 2 : -Math.PI / 2
-    // this.quaternion.setFromAxisAngle(rotationAxis, angle)
 
-    // this.geometry = geometry
-    // this.material = material
+    this.minX = this._pos.x
+    this.minY = this._pos.y
+    this.minZ = this._pos.z
+    this.maxX = this._pos.x
+    this.maxY = this._pos.y
+    this.maxZ = this._pos.z
   }
 
   nextNode(): BranchNode {
