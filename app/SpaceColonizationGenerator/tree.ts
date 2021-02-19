@@ -3,7 +3,6 @@ import {
   Float32BufferAttribute,
   Material,
   Mesh,
-  MeshPhongMaterial,
   Points,
   PointsMaterial,
   Scene,
@@ -30,17 +29,21 @@ export class Tree {
   private _branchNodes: Array<BranchNode>
   private _areaLookUp: RBush3D
   private _branchGeometries: Array<BufferGeometry>
+  private _branchMeshes: Array<Mesh>
   private _isCreated: boolean
   private _drawRange: number
   private _branchDetail: number
-  private _branchMaterial: Material
+  private _material: Material
+  private _debugMaterial: Material
 
   constructor(
     scene: Scene,
+    material: Material,
+    debugMaterial: Material,
     position: Vector3,
     attractors: Array<Vector3>,
     name: string,
-    branchDetail = 6
+    branchDetail: number
   ) {
     this._name = name
     this._scene = scene
@@ -58,12 +61,15 @@ export class Tree {
     this._branchNodes = []
     this._areaLookUp = new RBush3D()
     this._branchGeometries = []
+    this._branchMeshes = []
     this._isCreated = false
     this._drawRange = 0
     this._branchDetail = branchDetail
-    this._branchMaterial = new MeshPhongMaterial({
-      vertexColors: true,
-    })
+    this._material = material
+    this._debugMaterial = debugMaterial
+    // if (shaderModifier) {
+    // this._branchMaterial.onBeforeCompile = shaderModifier
+    // }
     this.init()
   }
 
@@ -99,30 +105,15 @@ export class Tree {
       }
     }
 
-    // const vertices: Array<Vector3> = [
-    //   new Vector3(0, 0, 0),
-    //   new Vector3(5, 10, 0),
-    //   new Vector3(10, 20, 0),
-    //   new Vector3(15, 30, 0),
-    //   new Vector3(10, 40, 10),
-    //   new Vector3(10, 50, 10),
-    //   // new Vector3(-25, 90, -5),
-    //   // new Vector3(-20, 85, 0),
-    //   // new Vector3(-15, 80, 5),
-    //   // new Vector3(-4, 48, 2),
-    //   // new Vector3(-8, 55, 3),
-    // ]
-    // this.generateBranchSegment(vertices, 0.5, 8)
-
-    for (let i = 0; i < 100; i++) {
-      this.grow()
-    }
+    // for (let i = 0; i < 100; i++) {
+    //   this.grow()
+    // }
 
     // calculate tree
-    // let isGrowing = true
-    // while (isGrowing) {
-    //   isGrowing = this.grow()
-    // }
+    let isGrowing = true
+    while (isGrowing) {
+      isGrowing = this.grow()
+    }
 
     // create mesh for each branch and set initial drawRange to 0
     for (
@@ -137,7 +128,7 @@ export class Tree {
       })
       const branchMesh = this.generateBranchMesh(
         vertices,
-        r / 400,
+        r / 200,
         this._branchDetail
       )
       if (branchMesh) {
@@ -367,7 +358,8 @@ export class Tree {
     // const material = new MeshPhongMaterial({
     //   vertexColors: true,
     // })
-    const mesh = new Mesh(geometry, this._branchMaterial)
+    const mesh = new Mesh(geometry, this._material)
+    this._branchMeshes.push(mesh)
     this._scene.add(mesh)
     return mesh
   }
@@ -428,7 +420,7 @@ export class Tree {
       const normal = dir.clone().normalize()
       vertices.push(ringVertex.x, ringVertex.y, ringVertex.z)
       normals.push(normal.x, normal.y, normal.z)
-      colors.push(1, 0.2, 1)
+      colors.push(1, 1, 1)
     }
 
     // if it is the last segment include midVertex
@@ -497,6 +489,17 @@ export class Tree {
       maxY: y + radius,
       maxZ: z + radius,
     }
+  }
+
+  setDebug(debug: boolean) {
+    this._branchMeshes?.forEach((element) => {
+      if (debug) {
+        element.material = this._debugMaterial
+      } else {
+        element.material = this._material
+      }
+      element.material.needsUpdate = true
+    })
   }
 
   get position(): Vector3 {

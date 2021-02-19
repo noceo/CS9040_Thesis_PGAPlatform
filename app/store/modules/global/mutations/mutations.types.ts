@@ -9,6 +9,7 @@ export enum GlobalStoreMutation {
   SET_DATAFIELDS = 'SET_DATAFIELDS',
   SET_VIZ_PARAMETERS = 'SET_VIZ_PARAMETERS',
   SET_VISUALIZATION_ACTIVE = 'SET_VISUALIZATION_ACTIVE',
+  SET_VIZ_DEBUG_STATE = 'SET_VIZ_DEBUG_STATE',
 }
 
 export type Mutations<S = IGlobalState> = {
@@ -26,4 +27,5 @@ export type Mutations<S = IGlobalState> = {
     state: S,
     payload: boolean
   ): void
+  [GlobalStoreMutation.SET_VIZ_DEBUG_STATE](state: S, payload: boolean): void
 }

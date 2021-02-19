@@ -13,4 +13,5 @@ export interface IGlobalState {
   dataFields?: Array<IDataField>
   vizParameters?: Array<VizParameter>
   visualizationActive: boolean
+  vizDebugActive: boolean
 }

@@ -1,20 +1,14 @@
 import {
   AmbientLight,
   BackSide,
-  BoxGeometry,
   Color,
-  ConeGeometry,
   DirectionalLight,
-  DoubleSide,
-  Fog,
   FogExp2,
-  HemisphereLight,
   Light,
   Material,
   Matrix3,
   Mesh,
   MeshBasicMaterial,
-  MeshLambertMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   PCFSoftShadowMap,
@@ -25,17 +19,16 @@ import {
   Scene,
   Shader,
   ShaderChunk,
+  ShaderMaterial,
   SphereGeometry,
   WebGLRenderer,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'stats.js'
-import THREE from 'three'
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { IIterationManager } from '../iterationManager/iterationManager.types'
-import { IterationManager } from '../iterationManager/iterationManager'
 import { Attractor } from '../attractor'
 import { TreeGenerator } from '../treeGenerator'
+import { mapParam } from '../helpers'
 import VisualizationTool from '~/model/visualizationTool/visualizationTool'
 import { IVizParameter } from '~/model/vizParameter/vizParameter.types'
 import { IDataRow } from '~/model'
@@ -44,15 +37,19 @@ import { IParameterConfig } from '~/model/visualizationTool/parameterConfig/para
 import { NumericVizParameter } from '~/model/numericVizParameter/numericVizParameter'
 import { generateID } from '~/model/helpers/idGenerator'
 import { TextVizParameter } from '~/model/textVizParameter/textVizParameter'
+import { treeColorShader } from '../shaders'
 
 export class SpaceColonizationTool extends VisualizationTool {
+  play(): void {
+    this._windEnabled = true
+    console.log()
+  }
+
   protected _availableParameters: IVizParameter[]
   private _allDataRows: Array<IDataRow>
-  private _iterationManager: IIterationManager
 
   private _scene: Scene
   private _camera: PerspectiveCamera
-  // private _cameraLookAt: Vector3
   private _renderer: WebGLRenderer
   private _stats: Stats
   private _attractors: Array<Attractor> = []
@@ -60,11 +57,14 @@ export class SpaceColonizationTool extends VisualizationTool {
   private _lights: Array<Light> = []
   private _rotationMatrix: Matrix3 = new Matrix3()
   private _controls: OrbitControls
-  private _shaders: Array<Shader>
+  private _fogShaders: Array<Shader>
+  private _previousRAF: number | null
+  private _totalTime: number
+  private _windEnabled: boolean
+  private _windIntensity: number
 
-  constructor(canvas: HTMLCanvasElement) {
-    super(canvas)
-    this._iterationManager = new IterationManager()
+  constructor(canvas: HTMLCanvasElement, debugMode: boolean) {
+    super(canvas, debugMode)
     this._allDataRows = []
     this._availableParameters = this.createParams(paramConfig)
 
@@ -78,7 +78,6 @@ export class SpaceColonizationTool extends VisualizationTool {
     // this._cameraLookAt = new Vector3(0, 100, 0)
     // this._camera.lookAt(this._cameraLookAt)
     // this._camera.updateProjectionMatrix()
-    this._camera.position.set(75, 20, 500)
     this._renderer = new WebGLRenderer({
       canvas: this._canvas,
       antialias: true,
@@ -92,56 +91,107 @@ export class SpaceColonizationTool extends VisualizationTool {
     // eslint-disable-next-line unicorn/number-literal-case
     this._scene.background = new Color(0x000000)
 
-    this._treeGenerator = new TreeGenerator(this._scene, 200)
-    this._treeGenerator.generateNewTree(0, 0)
-    this._treeGenerator.generateNewTree(0.5, 0.5)
-    this._treeGenerator.generateNewTree(1, 1)
-
-    this._shaders = []
-    const _modifyShader = (s: Shader) => {
-      this._shaders.push(s)
+    this._fogShaders = []
+    const modifyShaderWithFog = (s: Shader) => {
+      this._fogShaders.push(s)
+      s.uniforms.windEnabled = { value: false }
       s.uniforms.fogTime = { value: 0.0 }
+      s.uniforms.windIntensity = { value: 0.0 }
     }
 
+    // const modifyTreeShader = (s: Shader) => {
+    //   s.uniforms.gradientFactor = { value: 1 }
+    //   s.uniforms.colorLow = { value: new Color(0, 1, 0) }
+    //   s.uniforms.colorHigh = { value: new Color(1, 0, 0) }
+    // }
+
+    // create TREES
+    this._treeGenerator = new TreeGenerator(this._scene, 200)
+    const treeMaterial = new MeshStandardMaterial()
+    treeMaterial.onBeforeCompile = (s: Shader) => {
+      s.uniforms.gradientFactor = { value: 0.7 }
+      s.uniforms.colorLow = { value: new Color(0, 1, 0) }
+      s.uniforms.colorMid = { value: new Color(1, 0.5, 0) }
+      s.uniforms.colorHigh = { value: new Color(1, 0, 0) }
+
+      s.fragmentShader = `
+        uniform float gradientFactor;
+        uniform vec3 colorLow;
+        uniform vec3 colorMid;
+        uniform vec3 colorHigh;
+        ${s.fragmentShader}
+      `.replace(
+        `vec4 diffuseColor = vec4( diffuse, opacity );`,
+        `
+          vec3 color;
+          float percentage;
+          if (gradientFactor <= 0.5) {
+            percentage = gradientFactor / 0.5;
+            color = mix(colorLow, colorMid, percentage);
+          } else {
+            percentage = (gradientFactor - 0.5) / 0.5;
+            color = mix(colorMid, colorHigh, percentage);
+          }
+          vec4 diffuseColor = vec4(color, opacity);
+        `
+      )
+      console.warn(s.fragmentShader)
+      modifyShaderWithFog(s)
+    }
+    const treeDebugMaterial = new ShaderMaterial({
+      uniforms: treeColorShader.uniforms,
+      vertexShader: treeColorShader.vertexShader,
+      fragmentShader: treeColorShader.fragmentShader,
+      wireframe: true,
+    })
+    this._treeGenerator.generateNewTree(0, 0, treeMaterial, treeDebugMaterial)
+    this._treeGenerator.generateNewTree(
+      0.5,
+      0.5,
+      treeMaterial,
+      treeDebugMaterial
+    )
+    this._treeGenerator.generateNewTree(1, 1, treeMaterial, treeDebugMaterial)
+
+    const treeGroupMiddleX = this._treeGenerator.computeMiddleX()
+
+    this._camera.position.set(treeGroupMiddleX, 100, 250)
+
     const sky = new Mesh(
-      new SphereGeometry(10000, 32, 32),
+      new SphereGeometry(500, 32, 32),
       new MeshBasicMaterial({
         // eslint-disable-next-line unicorn/number-literal-case
         color: 0x000000,
         side: BackSide,
       })
     )
+    sky.position.setX(treeGroupMiddleX)
+    // ;(sky.material as Material).onBeforeCompile = _modifyShader
     // this._scene.add(sky)
 
     const ground = new Mesh(
-      new PlaneGeometry(2000, 2000),
+      new PlaneGeometry(5000, 5000),
       new MeshPhysicalMaterial({
         // eslint-disable-next-line unicorn/number-literal-case
-        color: 0xbababa,
+        color: 0x000000,
       })
     )
     ground.rotation.x = -Math.PI / 2
+    ground.position.setX(treeGroupMiddleX)
+    ;(ground.material as Material).onBeforeCompile = modifyShaderWithFog
     this._scene.add(ground)
 
-    const hill = new Mesh(
-      new SphereGeometry(40, 20, 20),
-      new MeshBasicMaterial({
-        // eslint-disable-next-line unicorn/number-literal-case
-        color: 0xa9a9a9,
-      })
-    )
-    hill.position.y -= 30
+    // const hill = new Mesh(
+    //   new SphereGeometry(40, 20, 20),
+    //   new MeshBasicMaterial({
+    //     // eslint-disable-next-line unicorn/number-literal-case
+    //     color: 0xa9a9a9,
+    //   })
+    // )
+    // hill.position.y -= 30
     // this._scene.add(hill)
 
-    // eslint-disable-next-line unicorn/number-literal-case
-    // const light1 = new PointLight(0xffffff, 1, 100)
-    // light1.position.set(10, 25, 25)
-    // this._lights.push(light1)
-    // // eslint-disable-next-line unicorn/number-literal-case
-    // const light2 = new PointLight(0xffffff, 1, 100)
-    // light2.position.set(10, 100, 25)
-    // this._lights.push(light2)
-
+    // CREATE LIGHTS
     // eslint-disable-next-line unicorn/number-literal-case
     const ambientLight = new AmbientLight(0x101010)
     this._scene.add(ambientLight)
@@ -165,56 +215,16 @@ export class SpaceColonizationTool extends VisualizationTool {
     this._scene.add(dirLight)
 
     // eslint-disable-next-line unicorn/number-literal-case
-    const hemiLight = new HemisphereLight(0xe5e5e5, 0xffffff, 0.6)
-    this._scene.add(hemiLight)
+    // const hemiLight = new HemisphereLight(0xe5e5e5, 0xffffff, 0.6)
+    // this._scene.add(hemiLight)
 
     // eslint-disable-next-line unicorn/number-literal-case
     // this._scene.fog = new Fog(0xdfe9f3, 100, 500)
     // eslint-disable-next-line unicorn/number-literal-case
-    this._scene.fog = new FogExp2(0x000000, 0.001)
 
+    // CREATE FOG
     // eslint-disable-next-line unicorn/number-literal-case
-    const trunkMat = new MeshStandardMaterial({ color: 0xffffff })
-    // eslint-disable-next-line unicorn/number-literal-case
-    const leavesMat = new MeshStandardMaterial({ color: 0x80ff80 })
-    const trunkGeo = new BoxGeometry(20, 20, 20)
-    const leavesGeo = new ConeGeometry(1, 1, 32)
-    const trunkGeometries = []
-    const leafGeometries = []
-    for (let x = 0; x < 1; ++x) {
-      for (let y = 0; y < 1; ++y) {
-        // const trunk = new Mesh(trunkGeo, trunkMat)
-        // const leaves = new Mesh(leavesGeo, leavesMat)
-        // trunk.scale.set(20, (Math.random() + 1.0) * 100.0, 20)
-        // trunk.position.set(
-        //   15000.0 * (Math.random() * 2.0 - 1.0),
-        //   trunk.scale.y / 2.0,
-        //   15000.0 * (Math.random() * 2.0 - 1.0)
-        // )
-
-        // leaves.scale.copy(trunk.scale)
-        // leaves.scale.set(100, trunk.scale.y * 5.0, 100)
-        // leaves.position.set(
-        //   trunk.position.x,
-        //   leaves.scale.y / 2 + (Math.random() + 1) * 25,
-        //   trunk.position.z
-        // )
-
-        trunkGeometries.push(trunkGeo)
-        leafGeometries.push(leavesGeo)
-      }
-    }
-    const mergedTrunkGeo = BufferGeometryUtils.mergeBufferGeometries(
-      trunkGeometries,
-      false
-    )
-    const mergedLeafGeo = BufferGeometryUtils.mergeBufferGeometries(
-      leafGeometries,
-      false
-    )
-    const trunkMesh = new Mesh(mergedTrunkGeo, trunkMat)
-    const leafMesh = new Mesh(mergedLeafGeo, leavesMat)
-    // this._scene.add(trunkMesh, leafMesh)
+    this._scene.fog = new FogExp2(0xdfe9f3, 0.001)
 
     window.addEventListener('resize', () => {
       this._renderer.setSize(window.innerWidth, window.innerHeight)
@@ -222,13 +232,14 @@ export class SpaceColonizationTool extends VisualizationTool {
       this._camera.updateProjectionMatrix()
     })
 
+    // CREATE CONTROLS
     this._controls = new OrbitControls(this._camera, this._canvas)
     this._controls.enableDamping = true
     this._controls.dampingFactor = 0.1
     this._controls.zoomSpeed = 1
     this._controls.enablePan = false
     this._controls.minDistance = 1
-    this._controls.target.set(0, 20, 0)
+    this._controls.target.set(treeGroupMiddleX, 100, 0)
     // this._controls.maxDistance = 80
     this._controls.enablePan = true
 
@@ -238,31 +249,87 @@ export class SpaceColonizationTool extends VisualizationTool {
 
     this.setup()
     this.initFogShader()
-    this.render()
+    this._windEnabled = false
+    this._windIntensity = 1
+    this._totalTime = 0
+    this._previousRAF = null
+    this.RAF()
   }
 
-  getAvailableParameters(): IVizParameter[] {
-    return this._availableParameters
+  RAF = () => {
+    requestAnimationFrame((t) => {
+      if (this._debugMode) {
+        this._stats.begin()
+        this.executeRenderLogic(t)
+        this._stats.end()
+      } else {
+        this.executeRenderLogic(t)
+      }
+      this.RAF()
+
+      // camera rotation
+      //
+      // this._camera.position.x =
+      //   this._cameraLookAt.x + 50 * Math.cos(1 * (1 * (Math.PI / 90)))
+      // this._camera.position.z =
+      //   this._cameraLookAt.z + 50 * Math.sin(1 * (1 * (Math.PI / 90)))
+
+      // let clock = new THREE.Clock();
+      // let delta = 0;
+      // // 30 fps
+      // let interval = 1 / 30;
+
+      //   delta += clock.getDelta();
+
+      //    if (delta  > interval) {
+      //        // The draw or time dependent code are here
+      //        render();
+
+      //        delta = delta % interval;
+      //    }
+    })
   }
 
-  onNewDataRow(data: IDataRow): void {
-    console.log(data)
+  private executeRenderLogic(t: number) {
+    if (this._previousRAF === null) {
+      this._previousRAF = t
+    }
+
+    this.updateShaderConstants((t - this._previousRAF) * 0.001)
+    this._previousRAF = t
+
+    this._controls.update()
+
+    this._treeGenerator.trees.forEach((tree) => {
+      tree.animate()
+    })
+
+    this._renderer.render(this._scene, this._camera)
   }
 
-  generateFullyRenderedContent(): void {
-    if (this._allDataRows && this._allDataRows.length > 0) {
-      // generate content
+  private updateShaderConstants(timeElapsed: number): void {
+    this._totalTime += timeElapsed
+    for (const s of this._fogShaders) {
+      s.uniforms.windEnabled.value = this._windEnabled
+      s.uniforms.fogTime.value = this._totalTime
+      s.uniforms.windIntensity.value = mapParam(
+        this._windIntensity,
+        0,
+        1,
+        0.0005,
+        0.01
+      )
     }
   }
 
-  setup(): void {
+  private setup(): void {
     this._lights.forEach((element) => {
       const helper = new PointLightHelper(element as PointLight)
       this._scene.add(element, helper)
     })
   }
 
-  initFogShader(): void {
+  private initFogShader(): void {
     const _NOISE_GLSL = `
       //
       // Description : Array and textureless GLSL 2D/3D/4D simplex
@@ -352,7 +419,7 @@ export class SpaceColonizationTool extends VisualizationTool {
         float value = 0.0;
         float amplitude = 0.5;
         float frequency = 0.0;
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 6; ++i) {
           value += amplitude * snoise(p);
           p *= 2.0;
           amplitude *= 0.5;
@@ -366,12 +433,14 @@ export class SpaceColonizationTool extends VisualizationTool {
         vec3 fogOrigin = cameraPosition;
         vec3 fogDirection = normalize(vWorldPosition - fogOrigin);
         float fogDepth = distance(vWorldPosition, fogOrigin);
-        // f(p) = fbm( p + fbm( p ) )
-        vec3 noiseSampleCoord = vWorldPosition * 0.00025 + vec3(0.0, 0.0, fogTime * 0.025);
-        float noiseSample = FBM(noiseSampleCoord + FBM(noiseSampleCoord)) * 0.5 + 0.5;
-        fogDepth *= mix(noiseSample, 1.0, saturate((fogDepth - 5000.0) / 5000.0));
+        if (windEnabled) {
+          // f(p) = fbm( p + fbm( p ) )
+          vec3 noiseSampleCoord = vWorldPosition * 0.00025 + vec3(0.0, 0.0, fogTime * windIntensity);
+          float noiseSample = FBM(noiseSampleCoord + FBM(noiseSampleCoord)) * 0.5 + 0.5;
+          fogDepth *= mix(noiseSample, 1.0, saturate((fogDepth - 5000.0) / 5000.0));
+        }
         fogDepth *= fogDepth;
-        float heightFactor = 0.05;
+        float heightFactor = 0.000005;
         float fogFactor = heightFactor * exp(-fogOrigin.y * fogDensity) * (
             1.0 - exp(-fogDepth * fogDirection.y * fogDensity)) / fogDirection.y;
         fogFactor = saturate(fogFactor);
@@ -383,7 +452,9 @@ export class SpaceColonizationTool extends VisualizationTool {
       _NOISE_GLSL +
       `
         #ifdef USE_FOG
+          uniform bool windEnabled;
           uniform float fogTime;
+          uniform float windIntensity;
           uniform vec3 fogColor;
           varying vec3 vWorldPosition;
           #ifdef FOG_EXP2
@@ -408,38 +479,18 @@ export class SpaceColonizationTool extends VisualizationTool {
     `
   }
 
-  render = () => {
-    this._stats.begin()
-    // this._attractors.forEach((element) => {
-    //   element.rotation.x += 0.01
-    //   element.rotation.y += 0.01
-    // })
-    this._controls.update()
-    // this._tree.grow()
-    this._treeGenerator.trees.forEach((tree) => {
-      tree.animate()
-    })
-    // this._camera.position.x =
-    //   this._cameraLookAt.x + 50 * Math.cos(1 * (1 * (Math.PI / 90)))
-    // this._camera.position.z =
-    //   this._cameraLookAt.z + 50 * Math.sin(1 * (1 * (Math.PI / 90)))
-    this._renderer.render(this._scene, this._camera)
-    this._stats.end()
-    requestAnimationFrame(this.render)
+  getAvailableParameters(): IVizParameter[] {
+    return this._availableParameters
+  }
 
-    // let clock = new THREE.Clock();
-    // let delta = 0;
-    // // 30 fps
-    // let interval = 1 / 30;
+  onNewDataRow(data: IDataRow): void {
+    console.log(data)
+  }
 
-    //   delta += clock.getDelta();
-
-    //    if (delta  > interval) {
-    //        // The draw or time dependent code are here
-    //        render();
-
-    //        delta = delta % interval;
-    //    }
+  generateFullyRenderedContent(): void {
+    if (this._allDataRows && this._allDataRows.length > 0) {
+      // generate content
+    }
   }
 
   private createParams(paramConfig: IParameterConfig): Array<IVizParameter> {
@@ -469,5 +520,15 @@ export class SpaceColonizationTool extends VisualizationTool {
     })
 
     return params
+  }
+
+  get debugMode(): boolean {
+    return this._debugMode
+  }
+
+  set debugMode(debugMode: boolean) {
+    this._stats.dom.style.display = this._debugMode ? 'none' : ''
+    this._debugMode = debugMode
+    this._treeGenerator.setDebug(debugMode)
   }
 }

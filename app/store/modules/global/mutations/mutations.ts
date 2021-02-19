@@ -29,4 +29,7 @@ export const mutations: MutationTree<IGlobalState> & Mutations = {
   [GlobalStoreMutation.SET_VISUALIZATION_ACTIVE](state, payload: boolean) {
     state.visualizationActive = payload
   },
+  [GlobalStoreMutation.SET_VIZ_DEBUG_STATE](state, payload: boolean) {
+    state.vizDebugActive = payload
+  },
 }

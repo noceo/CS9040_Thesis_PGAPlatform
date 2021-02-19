@@ -1,4 +1,4 @@
-import Appconfig from './app.config'
+// import Appconfig from './app.config'
 export default {
   // Target (https://go.nuxtjs.dev/config-target)
   target: 'static',
@@ -19,11 +19,12 @@ export default {
 
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: [
-    { src: '~/plugins/notifications.js', ssr: false },
+    { src: '~/plugins/notifications', ssr: false },
     { src: '~/plugins/vuex-persist', ssr: false },
     { src: '~/plugins/vue-slider-component', ssr: false },
     { src: '~/plugins/services', ssr: false },
     // { src: '~/plugins/i18n', ssr: false },
+    { src: '~/plugins/debug', ssr: false },
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)

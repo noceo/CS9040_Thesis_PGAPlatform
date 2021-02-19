@@ -5,6 +5,7 @@ import { VizParameter } from '~/model/vizParameter/vizParameter'
 export enum GlobalStoreGetter {
   GET_CURRENT_DATAROW = 'GET_CURRENT_DATAROW',
   GET_VIZ_PARAMETERS = 'GET_VIZ_PARAMETERS',
+  GET_VIZ_DEBUG_STATE = 'GET_VIZ_DEBUG_STATE',
 }
 
 export type Getters = {
@@ -15,4 +16,7 @@ export type Getters = {
   [GlobalStoreGetter.GET_VIZ_PARAMETERS](
     state: IGlobalState
   ): Array<VizParameter> | undefined
+  [GlobalStoreGetter.GET_VIZ_DEBUG_STATE](
+    state: IGlobalState
+  ): boolean | undefined
 }

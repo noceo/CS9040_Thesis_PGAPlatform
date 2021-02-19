@@ -3,31 +3,19 @@ import { IParameterConfig } from './parameter.types'
 const paramConfig: IParameterConfig = {
   numericParameters: [
     {
-      name: 'xRotationAngle',
-      min: 0,
-      max: 100,
-      value: 40,
-    },
-    {
-      name: 'yRotationAngle',
+      name: 'no2',
       min: 0,
       max: 1,
       value: 0,
     },
     {
-      name: 'zRotationAngle',
+      name: 'o3',
       min: 0,
       max: 1,
       value: 0,
     },
     {
-      name: 'branchLength',
-      min: 0,
-      max: 1,
-      value: 0,
-    },
-    {
-      name: 'branchColor',
+      name: 'pm10',
       min: 0,
       max: 1,
       value: 0,

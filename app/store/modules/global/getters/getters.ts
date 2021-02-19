@@ -11,4 +11,7 @@ export const getters: GetterTree<IGlobalState, IRootState> & Getters = {
   [GlobalStoreGetter.GET_VIZ_PARAMETERS]: (state: IGlobalState) => {
     return state.vizParameters
   },
+  [GlobalStoreGetter.GET_VIZ_DEBUG_STATE]: (state: IGlobalState) => {
+    return state.vizDebugActive
+  },
 }

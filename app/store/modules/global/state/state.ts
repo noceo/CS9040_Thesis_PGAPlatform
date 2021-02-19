@@ -7,4 +7,5 @@ export const state: IGlobalState = {
   dataFields: undefined,
   vizParameters: undefined,
   visualizationActive: false,
+  vizDebugActive: false,
 }

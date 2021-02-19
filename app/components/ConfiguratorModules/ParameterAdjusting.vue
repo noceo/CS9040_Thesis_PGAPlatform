@@ -1,12 +1,11 @@
 <template>
   <div>
-    <div class="paramgroup">
+    <!-- <div class="paramgroup">
       <h4>L-System related parameters</h4>
       <div class="bg-white border rounded-md">
         <ValueInput class="block" type="text" copy="Axiom" />
-        <!-- <ValueInput class="block" type="text" copy="TestValueInput" /> -->
       </div>
-    </div>
+    </div> -->
     <div class="paramgroup">
       <h4>Groupname</h4>
       <div class="bg-white border rounded-md">
