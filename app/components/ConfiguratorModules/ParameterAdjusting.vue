@@ -7,10 +7,9 @@
       </div>
     </div> -->
     <div class="paramgroup">
-      <h4>Groupname</h4>
       <div class="bg-white border rounded-md">
         <ValueSlider
-          v-for="(param, key) in GET_VIZ_PARAMETERS"
+          v-for="(param, key) in GET_ALL_VIZ_PARAMS_NUMERIC"
           :key="key"
           :copy="param.name"
           :value="param._value"
@@ -30,7 +29,7 @@ import { GlobalStoreGetter } from '~/store/modules/global/getters/getters.types'
 export default Vue.extend({
   name: 'ParameterAdjusting',
   computed: {
-    ...mapGetters('global', [GlobalStoreGetter.GET_VIZ_PARAMETERS]),
+    ...mapGetters('global', [GlobalStoreGetter.GET_ALL_VIZ_PARAMS_NUMERIC]),
   },
 })
 </script>

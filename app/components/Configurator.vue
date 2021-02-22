@@ -7,7 +7,9 @@
       <!-- Here content can be injected -->
       <DataBrowser />
     </ConfiguratorModule>
-    <ConfiguratorModule headline="Parameter Mapping" />
+    <ConfiguratorModule headline="Parameter Mapping">
+      <ParameterMapping />
+    </ConfiguratorModule>
     <ConfiguratorModule headline="Parameter Controls">
       <ParameterAdjusting />
     </ConfiguratorModule>

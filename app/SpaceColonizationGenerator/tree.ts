@@ -25,6 +25,7 @@ export class Tree {
   private _minDistance: number
   private _maxDistance: number
   private _attractors: Array<Attractor>
+  private _attractorSystem?: Points
   private _branches: Array<Array<BranchNode>>
   private _branchNodes: Array<BranchNode>
   private _areaLookUp: RBush3D
@@ -105,15 +106,15 @@ export class Tree {
       }
     }
 
-    // for (let i = 0; i < 100; i++) {
-    //   this.grow()
-    // }
+    for (let i = 0; i < 100; i++) {
+      this.grow()
+    }
 
     // calculate tree
-    let isGrowing = true
-    while (isGrowing) {
-      isGrowing = this.grow()
-    }
+    // let isGrowing = true
+    // while (isGrowing) {
+    //   isGrowing = this.grow()
+    // }
 
     // create mesh for each branch and set initial drawRange to 0
     for (
@@ -174,21 +175,6 @@ export class Tree {
           closestDistance = distance
         }
       }
-      // for (let j = 0; j < this._branches.length; j++) {
-      //   const branch = this._branches[j]
-      //   for (let k = 0; k < branch.length; k++) {
-      //     const node = branch[k]
-      //     const distance = attractor.distanceTo(node.pos)
-      //     if (distance < this._minDistance) {
-      //       attractor.reached = true
-      //       closestNode = null
-      //       break
-      //     } else if (distance < closestDistance) {
-      //       closestNode = node
-      //       closestDistance = distance
-      //     }
-      //   }
-      // }
 
       if (closestNode !== null) {
         const newDirection = attractor.clone().sub(closestNode.pos)
@@ -250,12 +236,11 @@ export class Tree {
       new Float32BufferAttribute(positions, 3)
     )
 
-    const attractorSystem = new Points(
+    this._attractorSystem = new Points(
       attractorGeometry,
       // eslint-disable-next-line unicorn/number-literal-case
       new PointsMaterial({ color: 0xffffff })
     )
-    this._scene.add(attractorSystem)
   }
 
   generateBranchMesh(
@@ -492,14 +477,21 @@ export class Tree {
   }
 
   setDebug(debug: boolean) {
-    this._branchMeshes?.forEach((element) => {
-      if (debug) {
+    if (debug) {
+      this._branchMeshes?.forEach((element) => {
         element.material = this._debugMaterial
-      } else {
-        element.material = this._material
+      })
+      if (this._attractorSystem) {
+        this._scene.add(this._attractorSystem)
       }
-      element.material.needsUpdate = true
-    })
+    } else {
+      this._branchMeshes?.forEach((element) => {
+        element.material = this._material
+      })
+      if (this._attractorSystem) {
+        this._scene.remove(this._attractorSystem)
+      }
+    }
   }
 
   get position(): Vector3 {

@@ -13,7 +13,7 @@ export const store = new Vuex.Store({
   modules: {
     global,
   },
-  plugins: [new VuexPersistence().plugin],
+  // plugins: [new VuexPersistence().plugin],
 })
 
 export default () => {

@@ -1,11 +1,11 @@
-import { IDataRow } from '../dataRow'
-import { IVizParameter } from '../vizParameter/vizParameter.types'
+import { IDataRow } from '../dataRow/dataRow.types'
 import { IVisualizationTool } from './visualizationTool.types'
+import { IStoreVizParams } from '~/store/modules/global/state/state.types'
 
 export default abstract class VisualizationTool implements IVisualizationTool {
   protected _canvas: HTMLCanvasElement
   protected _debugMode: boolean
-  protected abstract _availableParameters: Array<IVizParameter>
+  protected abstract _availableParameters: IStoreVizParams
 
   constructor(canvas: HTMLCanvasElement, debugMode: boolean) {
     this._canvas = canvas
@@ -14,7 +14,7 @@ export default abstract class VisualizationTool implements IVisualizationTool {
 
   abstract onNewDataRow(data: IDataRow): void
 
-  abstract getAvailableParameters(): Array<IVizParameter>
+  abstract getAvailableParameters(): IStoreVizParams
 
   abstract generateFullyRenderedContent(): void
 

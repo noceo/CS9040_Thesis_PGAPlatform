@@ -5,11 +5,18 @@ import { INotificationService } from '../notificationService/notificationService
 import { IParseResult } from '../fileParserService/IParseResult'
 import { ITimer } from '../timer/timer.types'
 import { IDataManager } from './dataManager.types'
+import { mappingFunctions } from './mappingFunctions'
 import TYPES from '~/IoC/types'
 import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
 import { store } from '~/store'
 import { StoreModule } from '~/store/store-modules'
-import { IDataRow } from '~/model'
+import { IDataRow } from '~/model/dataRow/dataRow.types'
+import { generateID } from '~/model/helpers/idGenerator'
+import { INumericDataParameter } from '~/model/INumericDataParameter'
+import { IDataParameter } from '~/model/IDataParameter'
+import { IVizParameter } from '~/model/IVizParameter'
+import { ParamMappingType } from '~/model/ParamMappingType'
+import { IMappingFunctionCollection } from '~/model/IMappingFunctionCollection'
 
 @injectable()
 export class DataManager implements IDataManager {
@@ -18,7 +25,8 @@ export class DataManager implements IDataManager {
   private _timer: ITimer
 
   private _data?: Array<IDataRow>
-  private _currentDataRowIndex?: number
+  private _currentDataRowIndex: number
+  private _mappingFunctions: IMappingFunctionCollection
 
   constructor(
     @inject(TYPES.IFileParser) parser: IFileParser<object>,
@@ -29,6 +37,9 @@ export class DataManager implements IDataManager {
     this._parser = parser
     this._notificationService = notificationsService
     this._timer = timer
+    this._currentDataRowIndex = 0
+    this._mappingFunctions = mappingFunctions
+    this.addMutationHandlers()
   }
 
   processNewFile(file: File, config: object): Promise<any> {
@@ -38,12 +49,27 @@ export class DataManager implements IDataManager {
           title: `Imported file ${file.name} successfully`,
           text: `${result.errors.length} errors occured while parsing.`,
         })
-        // Write to vuex ...
-        store.commit(
-          `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_DATAFIELDS}`,
-          result.meta.fields
-        )
-        resolve({ result, file })
+
+        if (result.meta.fields) {
+          // Write to vuex ...
+          const dataParams: Array<INumericDataParameter> = []
+          result.meta.fields?.forEach((element) => {
+            dataParams.push({
+              id: generateID(),
+              name: element,
+              min: 0,
+              max: 0,
+              value: 0,
+              dataConnectionId: '',
+            })
+          })
+          store.commit(
+            `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_DATA_PARAMS_NUMERIC}`,
+            dataParams
+          )
+          resolve({ result, file })
+        }
+        reject(new Error('Data Fields not readable'))
       }
 
       const onError = (error: IParseError, file: File): void => {
@@ -80,15 +106,54 @@ export class DataManager implements IDataManager {
     this._timer.stop()
   }
 
+  onMappingChanged(
+    dataParam: IDataParameter,
+    vizParam: IVizParameter,
+    mappingFunction: ParamMappingType
+  ): void {
+    // connection already exists
+    if (dataParam.dataConnectionId !== '') {
+      store.commit(
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.UPDATE_DATA_CONNECTION}`,
+        { dataParamId: dataParam.id, vizParamId: vizParam.id, mappingFunction }
+      )
+      return
+    }
+
+    // connection does not exist / create new connection
+    store.commit(
+      `${StoreModule.GLOBAL}/${GlobalStoreMutation.ADD_DATA_CONNECTION}`,
+      { dataParamId: dataParam.id, vizParamId: vizParam.id, mappingFunction }
+    )
+  }
+
+  private addMutationHandlers(): void {
+    store.subscribe((mutation: any) => {
+      switch (mutation.type) {
+        case `${StoreModule.GLOBAL}/${GlobalStoreMutation.ADD_DATA_CONNECTION}`: {
+          console.log('ADD_CONNECTION', mutation)
+          break
+        }
+        case `${StoreModule.GLOBAL}/${GlobalStoreMutation.UPDATE_DATA_CONNECTION}`: {
+          console.log('UPDATE_CONNECTION', mutation)
+          break
+        }
+        case `${StoreModule.GLOBAL}/${GlobalStoreMutation.REMOVE_DATA_CONNECTION}`: {
+          console.log('REMOVE_CONNECTION', mutation)
+          break
+        }
+      }
+    })
+  }
+
   private writeNewDataRowToStore(): void {
-    if (
-      typeof this._data !== 'undefined' &&
-      typeof this._currentDataRowIndex !== 'undefined'
-    ) {
+    if (typeof this._data !== 'undefined') {
+      console.log('CUR_DATA_ROW', this._data[this._currentDataRowIndex])
       store.commit(
         `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_CURRENT_DATAROW}`,
         this._data[this._currentDataRowIndex]
       )
+      this._currentDataRowIndex++
     }
   }
 

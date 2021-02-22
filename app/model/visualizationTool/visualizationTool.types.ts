@@ -1,9 +1,9 @@
-import { IDataRow } from '../dataRow'
-import { IVizParameter } from '../vizParameter/vizParameter.types'
+import { IDataRow } from '../dataRow/dataRow.types'
+import { IStoreVizParams } from '~/store/modules/global/state/state.types'
 
 export interface IVisualizationTool {
   onNewDataRow(data: IDataRow): void
-  getAvailableParameters(): Array<IVizParameter>
+  getAvailableParameters(): IStoreVizParams
   generateFullyRenderedContent(): void
   play(): void
 }

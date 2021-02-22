@@ -1,9 +1,9 @@
-import { IDataField } from '../dataField'
+import { IDataParameter } from '../dataParameter/dataParameter.types'
 
 export interface IDataRowData {
   readonly id: number
   readonly timestamp: string
-  readonly dataFields: Array<IDataField>
+  readonly dataFields: Array<IDataParameter>
 }
 
 export interface IDataRow extends IDataRowData {

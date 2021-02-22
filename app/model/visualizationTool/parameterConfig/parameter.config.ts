@@ -22,11 +22,11 @@ const paramConfig: IParameterConfig = {
     },
   ],
   textParameters: [
-    {
-      name: 'axiom',
-      regex: '/F+/',
-      value: '',
-    },
+    // {
+    //   name: 'axiom',
+    //   regex: '/F+/',
+    //   value: '',
+    // },
   ],
 }
 

@@ -44,8 +44,9 @@ export default Vue.extend({
     },
     saveAvailableParametersToStore(): void {
       const availableParams = this.viz.getAvailableParameters()
+      console.log(availableParams)
       this.$store.commit(
-        `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VIZ_PARAMETERS}`,
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VIZ_PARAMS}`,
         availableParams
       )
     },

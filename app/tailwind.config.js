@@ -4,7 +4,7 @@ module.exports = {
     extend: {
       borderRadius: ['first', 'last'],
       padding: ['hover'],
-      margin: ['hover'],
+      margin: ['hover', 'last'],
     },
   },
   plugins: [],

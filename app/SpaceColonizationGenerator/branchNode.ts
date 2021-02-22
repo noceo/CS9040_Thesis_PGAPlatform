@@ -52,6 +52,8 @@ export class BranchNode implements NeighbourSearchObject {
   nextNode(): BranchNode {
     this._childCount++
     console.log('CHILDS', this._childCount)
+    // add slightly more random dir for deterministic behavior
+    this._dir.add(new Vector3(0.001, 0, 0)).normalize()
     const nextPos = this._pos.clone().addScaledVector(this._dir, this._length)
     return new BranchNode(
       this,

@@ -39,6 +39,7 @@
         </label>
       </div>
       <PingNotifier
+        v-if="!file"
         class="z-10 absolute top-0 left-0 transform-gpu -translate-x-1/4 -translate-y-1/4"
       />
     </div>
@@ -53,6 +54,8 @@ import Vue from 'vue'
 
 import DocumentIcon from '~/assets/icons/outline/document-add.svg?inline'
 import XIcon from '~/assets/icons/outline/x.svg?inline'
+import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
+import { StoreModule } from '~/store/store-modules'
 
 export default Vue.extend({
   name: 'FileChooser',
@@ -124,6 +127,14 @@ export default Vue.extend({
     removeFile(): void {
       this.fileIsProcessed = false
       this.file = null
+      this.$store.commit(
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VISUALIZATION_ACTIVE}`,
+        false
+      )
+      // TODO: REMOVE ALL DATA PARAMS
+      this.$store.commit(
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.REMOVE_DATA_PARAMS_NUMERIC}`
+      )
     },
   },
 })

@@ -35,10 +35,20 @@
       :id="id"
       :name="id"
       class="block w-full bg-white focus:outline-none"
+      :value="activeOption"
+      @change="onChange"
     >
-      <option v-for="(option, key) in options" :key="key" value="">
-        {{ modifyOptionString(option) }}
-      </option>
+      <option />
+      <template v-if="optionType === 'string'">
+        <option v-for="(option, key) in options" :key="'select-option-' + key">
+          {{ capitalizeOptionString(option) }}
+        </option>
+      </template>
+      <template v-else>
+        <option v-for="(option, key) in options" :key="'select-option-' + key">
+          {{ capitalizeOptionString(option.name) }}
+        </option>
+      </template>
     </select>
   </div>
 </template>
@@ -69,20 +79,23 @@ export default Vue.extend({
     },
     capitalize: {
       type: Boolean,
-      required: false,
-      default: true,
+      required: true,
     },
   },
-  data() {
-    return {
-      actOption: this.activeOption as String,
-    }
+  computed: {
+    optionType(): string {
+      if (this.options.every((element: any) => typeof element === 'string')) {
+        return 'string'
+      } else {
+        return 'object'
+      }
+    },
   },
   methods: {
-    onClick() {
-      this.$emit('change', this.actOption)
+    onChange(event: any) {
+      this.$emit('change', event.target.value)
     },
-    modifyOptionString(value: string): string {
+    capitalizeOptionString(value: string): string {
       return this.capitalize
         ? value.charAt(0).toUpperCase() + value.slice(1)
         : value

@@ -1,7 +1,7 @@
-import { IVizParameter } from '../vizParameter/vizParameter.types'
+import { IVizParameter } from './IVizParameter'
 
 export interface INumericVizParameter extends IVizParameter {
+  value: number
   min: number
   max: number
-  value: number
 }

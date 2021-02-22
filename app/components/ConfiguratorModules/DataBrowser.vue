@@ -15,6 +15,7 @@ import { StoreModule } from '~/store/store-modules'
 import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
 import { DataMode } from '~/store/modules/global/state/state.types'
 export default Vue.extend({
+  name: 'DataBrowser',
   computed: {
     ...mapState('global', ['dataMode']),
     mode(): string {
