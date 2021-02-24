@@ -33,12 +33,19 @@ import VisualizationTool from '~/model/visualizationTool/visualizationTool'
 import paramConfig from '~/model/visualizationTool/parameterConfig/parameter.config'
 import { IParameterConfig } from '~/model/visualizationTool/parameterConfig/parameter.types'
 import { generateID } from '~/model/helpers/idGenerator'
-import { IDataRow } from '~/model/dataRow/dataRow.types'
 import { IStoreVizParams } from '~/store/modules/global/state/state.types'
+import { IVizParameter } from '~/model/IVizParameter'
+import { ITextDataParameter } from '~/model/ITextDataParameter'
+import { INumericVizParameter } from '~/model/INumericVizParameter'
+
+interface IVizManipulationLookup {
+  [key: string]: (newParam: INumericVizParameter) => {}
+}
 
 export class SpaceColonizationTool extends VisualizationTool {
   protected _availableParameters: IStoreVizParams
-  private _allDataRows: Array<IDataRow>
+  // private _vizManipulationLookup: IVizManipulationLookup
+  // private _allDataRows: Array<IDataRow>
 
   private _scene: Scene
   private _camera: PerspectiveCamera
@@ -46,6 +53,8 @@ export class SpaceColonizationTool extends VisualizationTool {
   private _stats: Stats
   private _attractors: Array<Attractor> = []
   private _treeGenerator: TreeGenerator
+  private _treeMaterial: Material
+  private _treeDebugMaterial: Material
   private _lights: Array<Light> = []
   private _rotationMatrix: Matrix3 = new Matrix3()
   private _controls: OrbitControls
@@ -57,7 +66,7 @@ export class SpaceColonizationTool extends VisualizationTool {
 
   constructor(canvas: HTMLCanvasElement, debugMode: boolean) {
     super(canvas, debugMode)
-    this._allDataRows = []
+    // this._allDataRows = []
     this._availableParameters = this.createParams(paramConfig)
 
     this._scene = new Scene()
@@ -98,8 +107,8 @@ export class SpaceColonizationTool extends VisualizationTool {
 
     // create TREES
     this._treeGenerator = new TreeGenerator(this._scene, 200)
-    const treeMaterial = new MeshStandardMaterial()
-    treeMaterial.onBeforeCompile = (s: Shader) => {
+    this._treeMaterial = new MeshStandardMaterial()
+    this._treeMaterial.onBeforeCompile = (s: Shader) => {
       s.uniforms.gradientFactor = { value: 0.2 }
       s.uniforms.colorLow = { value: new Color(0, 1, 0) }
       s.uniforms.colorMid = { value: new Color(1, 0.5, 0) }
@@ -128,19 +137,14 @@ export class SpaceColonizationTool extends VisualizationTool {
       )
       modifyShaderWithFog(s)
     }
-    const treeDebugMaterial = new ShaderMaterial({
+    this._treeDebugMaterial = new ShaderMaterial({
       uniforms: treeColorShader.uniforms,
       vertexShader: treeColorShader.vertexShader,
       fragmentShader: treeColorShader.fragmentShader,
       wireframe: true,
     })
     // this._treeGenerator.generateNewTree(0, 0, treeMaterial, treeDebugMaterial)
-    this._treeGenerator.generateNewTree(
-      0.5,
-      0.5,
-      treeMaterial,
-      treeDebugMaterial
-    )
+    // this._treeGenerator.generateNewTree(0.5, treeMaterial, treeDebugMaterial)
     // this._treeGenerator.generateNewTree(1, 1, treeMaterial, treeDebugMaterial)
 
     const treeGroupMiddleX = this._treeGenerator.computeMiddleX()
@@ -290,9 +294,7 @@ export class SpaceColonizationTool extends VisualizationTool {
 
     this._controls.update()
 
-    this._treeGenerator.trees.forEach((tree) => {
-      tree.animate()
-    })
+    this._treeGenerator.animateTrees()
 
     this._renderer.render(this._scene, this._camera)
   }
@@ -473,14 +475,42 @@ export class SpaceColonizationTool extends VisualizationTool {
     return this._availableParameters
   }
 
-  onNewDataRow(data: IDataRow): void {
-    console.log(data)
+  onNewData(data: {
+    vizParams: Array<IVizParameter>
+    textParams: Array<ITextDataParameter>
+  }): void {
+    for (const vizParam of data.vizParams) {
+      if (vizParam.name === 'no2') {
+        this._treeGenerator.updateTreeAtIndex(
+          0,
+          vizParam.value,
+          this._treeMaterial,
+          this._treeDebugMaterial
+        )
+      }
+      if (vizParam.name === 'o3') {
+        this._treeGenerator.updateTreeAtIndex(
+          1,
+          vizParam.value,
+          this._treeMaterial,
+          this._treeDebugMaterial
+        )
+      }
+      if (vizParam.name === 'pm10') {
+        this._treeGenerator.updateTreeAtIndex(
+          2,
+          vizParam.value,
+          this._treeMaterial,
+          this._treeDebugMaterial
+        )
+      }
+    }
   }
 
   generateFullyRenderedContent(): void {
-    if (this._allDataRows && this._allDataRows.length > 0) {
-      // generate content
-    }
+    // if (this._allDataRows && this._allDataRows.length > 0) {
+    //   // generate content
+    // }
   }
 
   play(): void {
@@ -498,6 +528,7 @@ export class SpaceColonizationTool extends VisualizationTool {
         min: element.min,
         max: element.max,
         value: element.value,
+        valueModifier: 0,
         dataConnectionId: '',
       }
     })

@@ -20,7 +20,7 @@ export default {
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: [
     { src: '~/plugins/notifications', ssr: false },
-    { src: '~/plugins/vuex-persist', ssr: false },
+    // { src: '~/plugins/vuex-persist', ssr: false },
     { src: '~/plugins/vue-slider-component', ssr: false },
     { src: '~/plugins/services', ssr: false },
     // { src: '~/plugins/i18n', ssr: false },

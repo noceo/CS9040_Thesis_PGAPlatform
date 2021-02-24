@@ -1,4 +1,5 @@
-import { IDataRow } from '../dataRow/dataRow.types'
+import { IVizParameter } from '../IVizParameter'
+import { ITextDataParameter } from '../ITextDataParameter'
 import { IVisualizationTool } from './visualizationTool.types'
 import { IStoreVizParams } from '~/store/modules/global/state/state.types'
 
@@ -12,7 +13,10 @@ export default abstract class VisualizationTool implements IVisualizationTool {
     this._debugMode = debugMode
   }
 
-  abstract onNewDataRow(data: IDataRow): void
+  abstract onNewData(data: {
+    vizParams: Array<IVizParameter>
+    textParams: Array<ITextDataParameter>
+  }): void
 
   abstract getAvailableParameters(): IStoreVizParams
 

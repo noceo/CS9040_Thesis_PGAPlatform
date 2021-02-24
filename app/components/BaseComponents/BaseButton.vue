@@ -11,7 +11,7 @@
               type === 'primary' && !disabled,
           },
           {
-            'bg-white border border-gray-300 text-black':
+            'bg-white border border-gray-300 hover:bg-gray-50 text-black':
               type === 'secondary' && !disabled,
           },
           { 'pointer-events-none opacity-40 bg-gray-300': disabled },

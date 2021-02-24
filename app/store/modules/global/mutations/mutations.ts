@@ -1,23 +1,32 @@
 import { MutationTree } from 'vuex'
+import Vue from 'vue'
 import { IGlobalState, DataMode, IStoreVizParams } from '../state/state.types'
 import { Mutations, GlobalStoreMutation } from './mutations.types'
-import { IDataRowData } from '~/model/dataRow/dataRow.types'
 import { IDataConnection } from '~/model/IDataConnection'
 import { INumericDataParameter } from '~/model/INumericDataParameter'
+import { ParamMappingType } from '~/model/ParamMappingType'
+import { INumericVizParameter } from '~/model/INumericVizParameter'
+import { ITextDataParameter } from '~/model/ITextDataParameter'
 
 export const mutations: MutationTree<IGlobalState> & Mutations = {
   // global mutations get defined here
+  [GlobalStoreMutation.SET_FILE_STATE](state, payload: boolean) {
+    state.fileExists = payload
+  },
+  [GlobalStoreMutation.SET_MAPPING_MODAL_STATE](state, payload: boolean) {
+    state.mappingModalOpened = payload
+  },
   [GlobalStoreMutation.SET_DATAMODE](state, payload: DataMode) {
     state.dataMode = payload
-  },
-  [GlobalStoreMutation.SET_CURRENT_DATAROW](state, payload: IDataRowData) {
-    state.currentDataRow = payload
   },
   [GlobalStoreMutation.SET_VISUALIZATION_ACTIVE](state, payload: boolean) {
     state.visualizationActive = payload
   },
   [GlobalStoreMutation.SET_VIZ_DEBUG_STATE](state, payload: boolean) {
     state.vizDebugActive = payload
+  },
+  [GlobalStoreMutation.SET_DATA_TRANSFER_STATE](state, payload: boolean) {
+    state.dataTransferActive = payload
   },
 
   [GlobalStoreMutation.SET_DATA_PARAMS_NUMERIC](
@@ -30,27 +39,113 @@ export const mutations: MutationTree<IGlobalState> & Mutations = {
     }
     state.dataParams.numeric = dataParams
   },
-  [GlobalStoreMutation.REMOVE_DATA_PARAMS_NUMERIC](state) {
-    // for (const dataType of Object.keys(state.dataParams)) {
-    //   TODO: state.dataParams[dataType] = {}
-    // }
+  [GlobalStoreMutation.UPDATE_DATA_PARAM_NUMERIC_BY_NAME](
+    state,
+    payload: { name: string; value: number }
+  ) {
+    const foundDataParam = Object.values(state.dataParams.numeric).find(
+      (dataParam) => dataParam.name === payload.name
+    )
+    if (foundDataParam) {
+      state.dataParams.numeric[foundDataParam.id].value = payload.value
+    }
+  },
+  [GlobalStoreMutation.UPDATE_DATA_PARAM_TEXT_BY_NAME](
+    state,
+    payload: { name: string; value: string }
+  ) {
+    const foundDataParam = Object.values(state.dataParams.text).find(
+      (dataParam) => dataParam.name === payload.name
+    )
+    console.log('update', payload.value)
+    if (foundDataParam) {
+      state.dataParams.text[foundDataParam.id].value = payload.value
+    }
+  },
+  [GlobalStoreMutation.SET_DATA_PARAMS_TEXT](
+    state,
+    payload: Array<ITextDataParameter>
+  ) {
+    const dataParams: any = {}
+    for (const element of payload) {
+      dataParams[element.id] = element
+    }
+    state.dataParams.text = dataParams
+  },
+  [GlobalStoreMutation.REMOVE_DATA_PARAMS](state) {
     state.dataParams.numeric = {}
+    state.dataParams.text = {}
+    state.dataConnections = {}
   },
 
   [GlobalStoreMutation.SET_VIZ_PARAMS](state, payload: IStoreVizParams) {
     state.vizParams = payload
   },
+  [GlobalStoreMutation.UPDATE_VIZ_PARAM_NUMERIC](
+    state,
+    payload: INumericVizParameter
+  ) {
+    state.vizParams.numeric[payload.id] = payload
+  },
+  [GlobalStoreMutation.SET_VALUE_MODIFIER](
+    state,
+    payload: { vizParamId: string; modifierValue: number }
+  ) {
+    // TODO: Check if vizParamId is set
+    if (state.vizParams.numeric[payload.vizParamId]) {
+      state.vizParams.numeric[payload.vizParamId].valueModifier =
+        payload.modifierValue
+    }
+  },
 
   [GlobalStoreMutation.ADD_DATA_CONNECTION](state, payload: IDataConnection) {
-    state.dataConnections[payload.id] = payload
+    // Vue.set() required because of reactivity issues
+    Vue.set(state.dataConnections, payload.id, payload)
+    state.dataParams.numeric[payload.dataParamId].dataConnectionId = payload.id
+    let vizParam: any
+    for (const vizParamCategory of Object.values(state.vizParams)) {
+      console.log(vizParamCategory)
+      vizParam = Object.values(vizParamCategory).find(
+        (param: any) => param.id === payload.vizParamId
+      )
+      if (vizParam) {
+        break
+      }
+    }
+    if (vizParam) {
+      vizParam.dataConnectionId = payload.id
+    }
   },
-  [GlobalStoreMutation.REMOVE_DATA_CONNECTION](state, payload: string) {
-    delete state.dataConnections[payload]
+  [GlobalStoreMutation.REMOVE_DATA_CONNECTION](
+    state,
+    payload: IDataConnection
+  ) {
+    state.dataParams.numeric[payload.dataParamId].dataConnectionId = ''
+    let vizParam: any
+    for (const vizParamCategory of Object.values(state.vizParams)) {
+      vizParam = Object.values(vizParamCategory).find(
+        (param: any) => param.id === payload.vizParamId
+      )
+      if (vizParam) {
+        break
+      }
+    }
+    if (vizParam) {
+      vizParam.dataConnectionId = ''
+    }
+    Vue.delete(state.dataConnections, payload.id)
   },
   [GlobalStoreMutation.UPDATE_DATA_CONNECTION](
     state,
     payload: IDataConnection
   ) {
     state.dataConnections[payload.id] = payload
+  },
+
+  [GlobalStoreMutation.SET_MAPPING_FUNCTIONS](
+    state,
+    payload: Array<ParamMappingType>
+  ) {
+    state.mappingFunctions = payload
   },
 }

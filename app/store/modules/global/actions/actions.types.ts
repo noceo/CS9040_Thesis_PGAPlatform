@@ -16,8 +16,8 @@ type AugmentedActionContext = {
 
 export interface Actions {
   // global actions get defined here
-  [GlobalStoreAction.GET_CURRENT_DATAROW](
-    { commit }: AugmentedActionContext,
-    payload: number
-  ): void
+  // [GlobalStoreAction.GET_CURRENT_DATAROW](
+  //   { commit }: AugmentedActionContext,
+  //   payload: number
+  // ): void
 }

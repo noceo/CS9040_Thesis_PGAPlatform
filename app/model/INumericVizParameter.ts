@@ -2,6 +2,7 @@ import { IVizParameter } from './IVizParameter'
 
 export interface INumericVizParameter extends IVizParameter {
   value: number
-  min: number
-  max: number
+  readonly min: number
+  readonly max: number
+  valueModifier: number
 }

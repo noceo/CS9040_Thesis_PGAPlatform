@@ -1,5 +1,5 @@
 import Vuex from 'vuex'
-import VuexPersistence from 'vuex-persist'
+// import VuexPersistence from 'vuex-persist'
 import { global } from './modules/global/index'
 
 export interface IRootState {

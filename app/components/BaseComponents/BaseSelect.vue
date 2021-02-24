@@ -32,20 +32,33 @@
 
     <label :for="id" class="block mb-1">{{ copy }}</label>
     <select
+      ref="select"
       :id="id"
       :name="id"
       class="block w-full bg-white focus:outline-none"
-      :value="activeOption"
+      :value="
+        activeOption && optionType === 'object'
+          ? activeOption.name
+          : activeOption
+      "
       @change="onChange"
     >
       <option />
       <template v-if="optionType === 'string'">
-        <option v-for="(option, key) in options" :key="'select-option-' + key">
+        <option
+          v-for="(option, key) in options"
+          :key="'select-option-' + key"
+          :value="option"
+        >
           {{ capitalizeOptionString(option) }}
         </option>
       </template>
       <template v-else>
-        <option v-for="(option, key) in options" :key="'select-option-' + key">
+        <option
+          v-for="(option, key) in options"
+          :key="'select-option-' + key"
+          :value="option.name"
+        >
           {{ capitalizeOptionString(option.name) }}
         </option>
       </template>
@@ -55,6 +68,11 @@
 
 <script lang="ts">
 import Vue from 'vue'
+
+export interface Option {
+  name: string
+}
+
 export default Vue.extend({
   name: 'BaseSelect',
   props: {
@@ -69,11 +87,11 @@ export default Vue.extend({
       default: '',
     },
     options: {
-      type: Array,
+      type: Array as () => Array<Option | string>,
       required: true,
     },
     activeOption: {
-      type: String,
+      type: [Object as () => Option, String],
       required: false,
       default: '',
     },
@@ -82,9 +100,18 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      actOption: this.activeOption as Option | string,
+    }
+  },
   computed: {
     optionType(): string {
-      if (this.options.every((element: any) => typeof element === 'string')) {
+      if (
+        this.options.every(
+          (element: Option | string) => typeof element === 'string'
+        )
+      ) {
         return 'string'
       } else {
         return 'object'
@@ -93,7 +120,25 @@ export default Vue.extend({
   },
   methods: {
     onChange(event: any) {
-      this.$emit('change', event.target.value)
+      const optionValue = event.target.value
+      let option = optionValue
+      switch (this.optionType) {
+        case 'object': {
+          console.log('ObjectSelect')
+          const options: Array<Option> = this.options as Array<Option>
+          option = options.find(
+            (element: Option) => element.name === optionValue
+          )
+          break
+        }
+        case 'string': {
+          if (option === '') {
+            option = undefined
+          }
+          break
+        }
+      }
+      this.$emit('change', option)
     },
     capitalizeOptionString(value: string): string {
       return this.capitalize

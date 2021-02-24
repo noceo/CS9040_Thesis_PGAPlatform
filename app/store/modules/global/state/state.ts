@@ -2,10 +2,12 @@ import { IGlobalState, DataMode } from './state.types'
 
 export const state: IGlobalState = {
   // here all properties that belong to the global state get saved
+  fileExists: false,
+  mappingModalOpened: true,
   dataMode: DataMode.STATIC,
-  currentDataRow: undefined,
   dataParams: {
     numeric: {},
+    text: {},
   },
   vizParams: {
     numeric: {},
@@ -13,5 +15,7 @@ export const state: IGlobalState = {
   },
   visualizationActive: false,
   vizDebugActive: false,
+  dataTransferActive: false,
   dataConnections: {},
+  mappingFunctions: [],
 }

@@ -7,11 +7,12 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import { SpaceColonizationTool } from '~/SpaceColonizationGenerator/SpaceColonization/SpaceColonization'
 import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
 import { StoreModule } from '~/store/store-modules'
 import VisualizationTool from '~/model/visualizationTool/visualizationTool'
+import { GlobalStoreGetter } from '~/store/modules/global/getters/getters.types'
 
 export default Vue.extend({
   name: 'Visualization',
@@ -21,14 +22,29 @@ export default Vue.extend({
     }
   },
   computed: {
-    ...mapState('global', ['dataMode', 'currentDataRow', 'vizDebugActive']),
+    ...mapState('global', ['dataMode', 'vizDebugActive']),
+    ...mapGetters('global', {
+      dataTransferState: GlobalStoreGetter.GET_DATA_TRANSFER_STATE,
+    }),
   },
   watch: {
-    currentDataRow(newVal) {
-      this.viz.onNewDataRow(newVal)
-    },
     vizDebugActive(newVal) {
       this.viz.debugMode = newVal
+    },
+    dataTransferState(newVal) {
+      console.log('TRANSFER', newVal)
+      if (newVal === true) {
+        const newVizParams = this.$store.getters[
+          `${StoreModule.GLOBAL}/${GlobalStoreGetter.GET_USED_VIZ_PARAMS_NUMERIC}`
+        ]
+        const newTextParams = this.$store.getters[
+          `${StoreModule.GLOBAL}/${GlobalStoreGetter.GET_DATA_PARAMS_TEXT}`
+        ]
+        this.viz.onNewData({
+          vizParams: newVizParams,
+          textParams: newTextParams,
+        })
+      }
     },
   },
   mounted() {

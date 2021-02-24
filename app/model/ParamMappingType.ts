@@ -1,4 +1,5 @@
 export enum ParamMappingType {
-  LINEAR_MAPPING = 'LinearMapping',
+  LINEAR = 'LinearMapping',
+  LINEAR_REVERSE = 'LinearReverseMapping',
   LOG_MAPPING = 'LogarithmicMapping',
 }

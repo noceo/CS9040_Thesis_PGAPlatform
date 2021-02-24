@@ -10,7 +10,7 @@ export class Timer implements ITimer {
 
   constructor() {
     this._timeStep = 0
-    this._timeToNextTick = 1000
+    this._timeToNextTick = 10000
     this._listeners = { tick: [], stop: [] }
   }
 
@@ -36,7 +36,7 @@ export class Timer implements ITimer {
     if (this._timeToNextTick) {
       const tick = () => {
         this._listeners.tick.forEach((listener) => listener())
-        this._timeStep += 1
+        this._timeStep++
       }
       tick()
       this._timer = setInterval(tick, this._timeToNextTick)

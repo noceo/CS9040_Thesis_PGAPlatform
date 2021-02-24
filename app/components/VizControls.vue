@@ -29,6 +29,11 @@ export default Vue.extend({
   },
   methods: {
     onClick() {
+      if (!this.isPlaying) {
+        this.$services.dataManager.startDataPropagation()
+      } else {
+        this.$services.dataManager.stopDataPropagation()
+      }
       this.isPlaying = !this.isPlaying
     },
   },

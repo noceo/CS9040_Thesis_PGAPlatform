@@ -17,6 +17,9 @@ export class Tree {
   // private _attractorSegments: Array<Array<Attractor>>
   // private _attractorGeometries: Array<BufferGeometry>
   // private _branches: Array<BranchNode>
+  isCreated: boolean
+  material: Material
+  debugMaterial: Material
   private _name: string
   private _scene: Scene
   private _position: Vector3
@@ -31,11 +34,8 @@ export class Tree {
   private _areaLookUp: RBush3D
   private _branchGeometries: Array<BufferGeometry>
   private _branchMeshes: Array<Mesh>
-  private _isCreated: boolean
   private _drawRange: number
   private _branchDetail: number
-  private _material: Material
-  private _debugMaterial: Material
 
   constructor(
     scene: Scene,
@@ -63,11 +63,11 @@ export class Tree {
     this._areaLookUp = new RBush3D()
     this._branchGeometries = []
     this._branchMeshes = []
-    this._isCreated = false
+    this.isCreated = false
     this._drawRange = 0
     this._branchDetail = branchDetail
-    this._material = material
-    this._debugMaterial = debugMaterial
+    this.material = material
+    this.debugMaterial = debugMaterial
     // if (shaderModifier) {
     // this._branchMaterial.onBeforeCompile = shaderModifier
     // }
@@ -117,11 +117,7 @@ export class Tree {
     // }
 
     // create mesh for each branch and set initial drawRange to 0
-    for (
-      let j = 0, r = this._branches.length - 1;
-      j < this._branches.length;
-      j++, r--
-    ) {
+    for (let j = 0, r = 100; j < this._branches.length; j++, r--) {
       const branch = this._branches[j]
       const vertices: Array<Vector3> = []
       branch.forEach((branchNode) => {
@@ -129,7 +125,7 @@ export class Tree {
       })
       const branchMesh = this.generateBranchMesh(
         vertices,
-        r / 200,
+        r / 100,
         this._branchDetail
       )
       if (branchMesh) {
@@ -140,7 +136,7 @@ export class Tree {
     }
     console.log(this._branches)
     console.log(this._branchGeometries)
-    this._isCreated = true
+    this.isCreated = true
   }
 
   grow(): boolean {
@@ -343,7 +339,7 @@ export class Tree {
     // const material = new MeshPhongMaterial({
     //   vertexColors: true,
     // })
-    const mesh = new Mesh(geometry, this._material)
+    const mesh = new Mesh(geometry, this.material)
     this._branchMeshes.push(mesh)
     this._scene.add(mesh)
     return mesh
@@ -434,13 +430,23 @@ export class Tree {
   }
 
   animate(): void {
-    if (this._isCreated) {
+    if (this.isCreated) {
       this._branchGeometries.forEach((geometry) => {
         geometry.setDrawRange(
           0,
           geometry.drawRange.count + 1 * this._branchDetail
         )
       })
+    }
+  }
+
+  removeFromScene(): void {
+    this._branchMeshes.forEach((geometry) => {
+      console.log('REMOVE', geometry)
+      this._scene.remove(geometry)
+    })
+    if (this._attractorSystem) {
+      this._scene.remove(this._attractorSystem)
     }
   }
 
@@ -479,14 +485,14 @@ export class Tree {
   setDebug(debug: boolean) {
     if (debug) {
       this._branchMeshes?.forEach((element) => {
-        element.material = this._debugMaterial
+        element.material = this.debugMaterial
       })
       if (this._attractorSystem) {
         this._scene.add(this._attractorSystem)
       }
     } else {
       this._branchMeshes?.forEach((element) => {
-        element.material = this._material
+        element.material = this.material
       })
       if (this._attractorSystem) {
         this._scene.remove(this._attractorSystem)

@@ -6,15 +6,16 @@
         <ValueInput class="block" type="text" copy="Axiom" />
       </div>
     </div> -->
-    <div class="paramgroup">
+    <div v-if="GET_USED_VIZ_PARAMS_NUMERIC.length > 0" class="paramgroup">
       <div class="bg-white border rounded-md">
         <ValueSlider
-          v-for="(param, key) in GET_ALL_VIZ_PARAMS_NUMERIC"
+          v-for="(param, key) in GET_USED_VIZ_PARAMS_NUMERIC"
           :key="key"
           :copy="param.name"
           :value="param._value"
           :min-max="[param._min, param._max]"
-          :interval="0.01"
+          :interval="1"
+          @change="onSliderChange"
         />
       </div>
     </div>
@@ -25,11 +26,21 @@
 import Vue from 'vue'
 import { mapGetters } from 'vuex'
 import { GlobalStoreGetter } from '~/store/modules/global/getters/getters.types'
+import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
+import { StoreModule } from '~/store/store-modules'
 
 export default Vue.extend({
   name: 'ParameterAdjusting',
   computed: {
-    ...mapGetters('global', [GlobalStoreGetter.GET_ALL_VIZ_PARAMS_NUMERIC]),
+    ...mapGetters('global', [GlobalStoreGetter.GET_USED_VIZ_PARAMS_NUMERIC]),
+  },
+  methods: {
+    onSliderChange(sliderStatus: { id: string; value: number }): void {
+      this.$store.commit(
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VALUE_MODIFIER}`,
+        sliderStatus
+      )
+    },
   },
 })
 </script>

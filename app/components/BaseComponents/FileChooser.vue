@@ -133,7 +133,7 @@ export default Vue.extend({
       )
       // TODO: REMOVE ALL DATA PARAMS
       this.$store.commit(
-        `${StoreModule.GLOBAL}/${GlobalStoreMutation.REMOVE_DATA_PARAMS_NUMERIC}`
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.REMOVE_DATA_PARAMS}`
       )
     },
   },

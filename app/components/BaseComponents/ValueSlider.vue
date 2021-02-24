@@ -26,6 +26,11 @@
 import Vue from 'vue'
 export default Vue.extend({
   props: {
+    id: {
+      type: String,
+      required: false,
+      default: '',
+    },
     copy: {
       type: String,
       required: true,
@@ -50,12 +55,12 @@ export default Vue.extend({
   },
   data() {
     return {
-      sliderValue: this.value,
+      sliderValue: this.value as number,
     }
   },
   methods: {
     onChange(): void {
-      this.$emit('change', this.sliderValue)
+      this.$emit('change', { id: this.id, value: this.sliderValue })
     },
   },
 })
