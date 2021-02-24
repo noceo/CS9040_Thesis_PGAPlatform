@@ -13,6 +13,7 @@ export const state: IGlobalState = {
     numeric: {},
     text: {},
   },
+  liveParams: {},
   visualizationActive: false,
   vizDebugActive: false,
   dataTransferActive: false,

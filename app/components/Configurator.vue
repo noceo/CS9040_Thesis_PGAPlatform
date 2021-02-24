@@ -10,8 +10,8 @@
     <ConfiguratorModule headline="Parameter Mapping">
       <ParameterMapping />
     </ConfiguratorModule>
-    <ConfiguratorModule headline="Parameter Controls">
-      <ParameterAdjusting />
+    <ConfiguratorModule headline="Live Parameter Controls">
+      <LiveParameterAdjusting />
     </ConfiguratorModule>
     <ConfiguratorModule headline="Export">
       <Export />

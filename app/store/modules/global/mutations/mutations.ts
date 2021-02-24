@@ -1,6 +1,11 @@
 import { MutationTree } from 'vuex'
 import Vue from 'vue'
-import { IGlobalState, DataMode, IStoreVizParams } from '../state/state.types'
+import {
+  IGlobalState,
+  DataMode,
+  IStoreVizParams,
+  IStoreLiveParams,
+} from '../state/state.types'
 import { Mutations, GlobalStoreMutation } from './mutations.types'
 import { IDataConnection } from '~/model/IDataConnection'
 import { INumericDataParameter } from '~/model/INumericDataParameter'
@@ -96,6 +101,18 @@ export const mutations: MutationTree<IGlobalState> & Mutations = {
       state.vizParams.numeric[payload.vizParamId].valueModifier =
         payload.modifierValue
     }
+  },
+
+  [GlobalStoreMutation.SET_LIVE_PARAMS](state, payload: IStoreLiveParams) {
+    for (const param of Object.values(payload)) {
+      Vue.set(state.liveParams, param.id, param)
+    }
+  },
+  [GlobalStoreMutation.UPDATE_LIVE_PARAM](
+    state,
+    payload: { id: string; value: number }
+  ) {
+    state.liveParams[payload.id].value = payload.value
   },
 
   [GlobalStoreMutation.ADD_DATA_CONNECTION](state, payload: IDataConnection) {

@@ -33,10 +33,14 @@ import VisualizationTool from '~/model/visualizationTool/visualizationTool'
 import paramConfig from '~/model/visualizationTool/parameterConfig/parameter.config'
 import { IParameterConfig } from '~/model/visualizationTool/parameterConfig/parameter.types'
 import { generateID } from '~/model/helpers/idGenerator'
-import { IStoreVizParams } from '~/store/modules/global/state/state.types'
+import {
+  IStoreLiveParams,
+  IStoreVizParams,
+} from '~/store/modules/global/state/state.types'
 import { IVizParameter } from '~/model/IVizParameter'
 import { ITextDataParameter } from '~/model/ITextDataParameter'
 import { INumericVizParameter } from '~/model/INumericVizParameter'
+import { ILiveVizParameter } from '~/model/ILiveVizParameter'
 
 interface IVizManipulationLookup {
   [key: string]: (newParam: INumericVizParameter) => {}
@@ -44,6 +48,7 @@ interface IVizManipulationLookup {
 
 export class SpaceColonizationTool extends VisualizationTool {
   protected _availableParameters: IStoreVizParams
+  protected _availableLiveParameters: IStoreLiveParams
   // private _vizManipulationLookup: IVizManipulationLookup
   // private _allDataRows: Array<IDataRow>
 
@@ -66,8 +71,8 @@ export class SpaceColonizationTool extends VisualizationTool {
 
   constructor(canvas: HTMLCanvasElement, debugMode: boolean) {
     super(canvas, debugMode)
-    // this._allDataRows = []
     this._availableParameters = this.createParams(paramConfig)
+    this._availableLiveParameters = this.createLiveParams(paramConfig)
 
     this._scene = new Scene()
     this._camera = new PerspectiveCamera(
@@ -171,7 +176,7 @@ export class SpaceColonizationTool extends VisualizationTool {
     // this._scene.add(sky)
 
     const ground = new Mesh(
-      new PlaneGeometry(500, 3000),
+      new PlaneGeometry(3000, 500),
       new MeshPhysicalMaterial({
         // eslint-disable-next-line unicorn/number-literal-case
         color: 0x000000,
@@ -307,7 +312,7 @@ export class SpaceColonizationTool extends VisualizationTool {
   }
 
   private updateShaderConstants(timeElapsed: number): void {
-    this._totalTime += timeElapsed
+    this._totalTime += timeElapsed + mapParam(this._windIntensity, 0, 1, 0, 2)
     for (const s of this._fogShaders) {
       s.uniforms.windEnabled.value = this._windEnabled
       s.uniforms.fogTime.value = this._totalTime
@@ -434,7 +439,7 @@ export class SpaceColonizationTool extends VisualizationTool {
         float fogDepth = distance(vWorldPosition, fogOrigin);
         if (windEnabled) {
           // f(p) = fbm( p + fbm( p ) )
-          vec3 noiseSampleCoord = vWorldPosition * 0.00025 + vec3(0.0, 0.0, fogTime * windIntensity);
+          vec3 noiseSampleCoord = vWorldPosition * 0.00025 + vec3(0.0, 0.0, fogTime * 0.0005);
           float noiseSample = FBM(noiseSampleCoord + FBM(noiseSampleCoord)) * 0.5 + 0.5;
           fogDepth *= mix(noiseSample, 1.0, saturate((fogDepth - 5000.0) / 5000.0));
         }
@@ -482,6 +487,10 @@ export class SpaceColonizationTool extends VisualizationTool {
     return this._availableParameters
   }
 
+  getAvailableLiveParameters(): IStoreLiveParams {
+    return this._availableLiveParameters
+  }
+
   onNewData(data: {
     vizParams: Array<IVizParameter>
     textParams: Array<ITextDataParameter>
@@ -500,6 +509,15 @@ export class SpaceColonizationTool extends VisualizationTool {
       if (vizParam.name === 'pm10') {
         this._treeGenerator.updateTreeAtIndex(2, vizParam.value)
         this._treeColorShaders[2].uniforms.gradientFactor.value = treeColorValue
+      }
+    }
+  }
+
+  onNewLiveParams(data: Array<ILiveVizParameter>): void {
+    console.log('TESTERINO')
+    for (const param of data) {
+      if (param.name === 'windForce') {
+        this._windIntensity = param.value
       }
     }
   }
@@ -543,6 +561,19 @@ export class SpaceColonizationTool extends VisualizationTool {
     })
 
     return { numeric: numericParams, text: textParams }
+  }
+
+  private createLiveParams(config: IParameterConfig): IStoreLiveParams {
+    const liveParams: any = {}
+    config.liveParameters.forEach((element) => {
+      const id = generateID()
+      liveParams[id] = {
+        id,
+        name: element.name,
+        value: element.value,
+      }
+    })
+    return liveParams
   }
 
   get debugMode(): boolean {

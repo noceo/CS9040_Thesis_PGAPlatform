@@ -1,4 +1,9 @@
-import { DataMode, IGlobalState, IStoreVizParams } from '../state/state.types'
+import {
+  DataMode,
+  IGlobalState,
+  IStoreLiveParams,
+  IStoreVizParams,
+} from '../state/state.types'
 import { IDataConnection } from '~/model/IDataConnection'
 import { INumericDataParameter } from '~/model/INumericDataParameter'
 import { ParamMappingType } from '~/model/ParamMappingType'
@@ -23,6 +28,9 @@ export enum GlobalStoreMutation {
   SET_VIZ_PARAMS = 'SET_VIZ_PARAMS',
   UPDATE_VIZ_PARAM_NUMERIC = 'UPDATE_VIZ_PARAM_NUMERIC',
   SET_VALUE_MODIFIER = 'SET_VALUE_MODIFIER',
+
+  SET_LIVE_PARAMS = 'SET_LIVE_PARAMS',
+  UPDATE_LIVE_PARAM = 'UPDATE_LIVE_PARAM',
 
   ADD_DATA_CONNECTION = 'ADD_DATA_CONNECTION',
   REMOVE_DATA_CONNECTION = 'REMOVE_DATA_CONNECTION',
@@ -73,6 +81,15 @@ export type Mutations<S = IGlobalState> = {
   [GlobalStoreMutation.SET_VALUE_MODIFIER](
     state: S,
     payload: { vizParamId: string; modifierValue: number }
+  ): void
+
+  [GlobalStoreMutation.SET_LIVE_PARAMS](
+    state: S,
+    payload: IStoreLiveParams
+  ): void
+  [GlobalStoreMutation.UPDATE_LIVE_PARAM](
+    state: S,
+    payload: { id: string; value: number }
   ): void
 
   [GlobalStoreMutation.ADD_DATA_CONNECTION](

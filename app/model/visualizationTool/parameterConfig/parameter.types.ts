@@ -13,7 +13,12 @@ export interface ITextConfigParameter extends IConfigParameter {
   value: string
 }
 
+export interface ILiveConfigParameter extends IConfigParameter {
+  value: number
+}
+
 export interface IParameterConfig {
   numericParameters: Array<INumericConfigParameter>
   textParameters: Array<ITextConfigParameter>
+  liveParameters: Array<ILiveConfigParameter>
 }

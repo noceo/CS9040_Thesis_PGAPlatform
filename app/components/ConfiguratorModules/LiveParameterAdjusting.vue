@@ -6,15 +6,16 @@
         <ValueInput class="block" type="text" copy="Axiom" />
       </div>
     </div> -->
-    <div v-if="GET_USED_VIZ_PARAMS_NUMERIC.length > 0" class="paramgroup">
+    <div v-if="liveParams.length > 0" class="paramgroup">
       <div class="bg-white border rounded-md">
         <ValueSlider
-          v-for="(param, key) in GET_USED_VIZ_PARAMS_NUMERIC"
-          :key="key"
+          v-for="(param, key) in liveParams"
+          :id="param.id"
+          :key="'live-parameter-adjusting-slider' + key"
           :copy="param.name"
-          :value="param._value"
-          :min-max="[param._min, param._max]"
-          :interval="1"
+          :value="param.value"
+          :min-max="[0, 1]"
+          :interval="0.1"
           @change="onSliderChange"
         />
       </div>
@@ -30,15 +31,15 @@ import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.
 import { StoreModule } from '~/store/store-modules'
 
 export default Vue.extend({
-  name: 'ParameterAdjusting',
+  name: 'LiveParameterAdjusting',
   computed: {
-    ...mapGetters('global', [GlobalStoreGetter.GET_USED_VIZ_PARAMS_NUMERIC]),
+    ...mapGetters('global', { liveParams: GlobalStoreGetter.GET_LIVE_PARAMS }),
   },
   methods: {
     onSliderChange(sliderStatus: { id: string; value: number }): void {
       this.$store.commit(
-        `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VALUE_MODIFIER}`,
-        sliderStatus
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.UPDATE_LIVE_PARAM}`,
+        { id: sliderStatus.id, value: sliderStatus.value }
       )
     },
   },

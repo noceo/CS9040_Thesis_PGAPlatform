@@ -28,6 +28,12 @@ const paramConfig: IParameterConfig = {
     //   value: '',
     // },
   ],
+  liveParameters: [
+    {
+      name: 'windForce',
+      value: 0,
+    },
+  ],
 }
 
 export default paramConfig

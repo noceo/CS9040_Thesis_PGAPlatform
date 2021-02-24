@@ -23,6 +23,11 @@ export const getters: GetterTree<IGlobalState, IRootState> & Getters = {
     }
     return params
   },
+  [GlobalStoreGetter.GET_USED_DATA_PARAMS_NUMERIC]: (state: IGlobalState) => {
+    return Object.values(state.dataParams.numeric).filter(
+      (element) => element.dataConnectionId !== ''
+    )
+  },
   [GlobalStoreGetter.GET_DATA_PARAM_NUMERIC_BY_ID]: (state: IGlobalState) => (
     paramId: string
   ) => {
@@ -61,6 +66,10 @@ export const getters: GetterTree<IGlobalState, IRootState> & Getters = {
     return Object.values(state.vizParams.numeric).find(
       (element) => element.id === paramId
     )
+  },
+
+  [GlobalStoreGetter.GET_LIVE_PARAMS]: (state: IGlobalState) => {
+    return Object.values(state.liveParams)
   },
 
   [GlobalStoreGetter.GET_VIZ_DEBUG_STATE]: (state: IGlobalState) => {

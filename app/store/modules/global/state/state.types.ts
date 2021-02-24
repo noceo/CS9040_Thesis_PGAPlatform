@@ -4,6 +4,7 @@ import { INumericVizParameter } from '~/model/INumericVizParameter'
 import { INumericDataParameter } from '~/model/INumericDataParameter'
 import { ParamMappingType } from '~/model/ParamMappingType'
 import { ITextDataParameter } from '~/model/ITextDataParameter'
+import { ILiveVizParameter } from '~/model/ILiveVizParameter'
 
 export enum DataMode {
   STATIC = 'STATIC',
@@ -20,6 +21,10 @@ export interface IStoreVizParams {
   text: { [key: string]: ITextVizParameter }
 }
 
+export interface IStoreLiveParams {
+  [key: string]: ILiveVizParameter
+}
+
 export interface IStoreDataConnections {
   [key: string]: IDataConnection
 }
@@ -31,6 +36,7 @@ export interface IGlobalState {
   dataMode: DataMode
   dataParams: IStoreDataParams
   vizParams: IStoreVizParams
+  liveParams: IStoreLiveParams
   visualizationActive: boolean
   vizDebugActive: boolean
   dataTransferActive: boolean

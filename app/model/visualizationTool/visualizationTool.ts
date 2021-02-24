@@ -1,7 +1,11 @@
 import { IVizParameter } from '../IVizParameter'
 import { ITextDataParameter } from '../ITextDataParameter'
 import { IVisualizationTool } from './visualizationTool.types'
-import { IStoreVizParams } from '~/store/modules/global/state/state.types'
+import {
+  IStoreLiveParams,
+  IStoreVizParams,
+} from '~/store/modules/global/state/state.types'
+import { ILiveVizParameter } from '../ILiveVizParameter'
 
 export default abstract class VisualizationTool implements IVisualizationTool {
   protected _canvas: HTMLCanvasElement
@@ -18,7 +22,10 @@ export default abstract class VisualizationTool implements IVisualizationTool {
     textParams: Array<ITextDataParameter>
   }): void
 
+  abstract onNewLiveParams(data: Array<ILiveVizParameter>): void
+
   abstract getAvailableParameters(): IStoreVizParams
+  abstract getAvailableLiveParameters(): IStoreLiveParams
 
   abstract generateFullyRenderedContent(): void
 
