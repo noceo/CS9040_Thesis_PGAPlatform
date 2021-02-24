@@ -53,12 +53,12 @@ export class SpaceColonizationTool extends VisualizationTool {
   private _stats: Stats
   private _attractors: Array<Attractor> = []
   private _treeGenerator: TreeGenerator
-  private _treeMaterial: Material
   private _treeDebugMaterial: Material
   private _lights: Array<Light> = []
   private _rotationMatrix: Matrix3 = new Matrix3()
   private _controls: OrbitControls
   private _fogShaders: Array<Shader>
+  private _treeColorShaders: Array<Shader>
   private _previousRAF: number | null
   private _totalTime: number
   private _windEnabled: boolean
@@ -107,45 +107,52 @@ export class SpaceColonizationTool extends VisualizationTool {
 
     // create TREES
     this._treeGenerator = new TreeGenerator(this._scene, 200)
-    this._treeMaterial = new MeshStandardMaterial()
-    this._treeMaterial.onBeforeCompile = (s: Shader) => {
-      s.uniforms.gradientFactor = { value: 0.2 }
-      s.uniforms.colorLow = { value: new Color(0, 1, 0) }
-      s.uniforms.colorMid = { value: new Color(1, 0.5, 0) }
-      s.uniforms.colorHigh = { value: new Color(1, 0, 0) }
-
-      s.fragmentShader = `
-        uniform float gradientFactor;
-        uniform vec3 colorLow;
-        uniform vec3 colorMid;
-        uniform vec3 colorHigh;
-        ${s.fragmentShader}
-      `.replace(
-        `vec4 diffuseColor = vec4( diffuse, opacity );`,
-        `
-          vec3 color;
-          float percentage;
-          if (gradientFactor <= 0.5) {
-            percentage = gradientFactor / 0.5;
-            color = mix(colorLow, colorMid, percentage);
-          } else {
-            percentage = (gradientFactor - 0.5) / 0.5;
-            color = mix(colorMid, colorHigh, percentage);
-          }
-          vec4 diffuseColor = vec4(color, opacity);
-        `
-      )
-      modifyShaderWithFog(s)
-    }
+    this._treeColorShaders = []
     this._treeDebugMaterial = new ShaderMaterial({
       uniforms: treeColorShader.uniforms,
       vertexShader: treeColorShader.vertexShader,
       fragmentShader: treeColorShader.fragmentShader,
       wireframe: true,
     })
-    // this._treeGenerator.generateNewTree(0, 0, treeMaterial, treeDebugMaterial)
-    // this._treeGenerator.generateNewTree(0.5, treeMaterial, treeDebugMaterial)
-    // this._treeGenerator.generateNewTree(1, 1, treeMaterial, treeDebugMaterial)
+    for (let i = 0; i < 3; i++) {
+      const treeMaterial = new MeshStandardMaterial()
+      treeMaterial.onBeforeCompile = (s: Shader) => {
+        s.uniforms.gradientFactor = { value: 0 }
+        s.uniforms.colorLow = { value: new Color(0, 1, 0) }
+        s.uniforms.colorMid = { value: new Color(1, 0.5, 0) }
+        s.uniforms.colorHigh = { value: new Color(1, 0, 0) }
+
+        s.fragmentShader = `
+          uniform float gradientFactor;
+          uniform vec3 colorLow;
+          uniform vec3 colorMid;
+          uniform vec3 colorHigh;
+          ${s.fragmentShader}
+        `.replace(
+          `vec4 diffuseColor = vec4( diffuse, opacity );`,
+          `
+            vec3 color;
+            float percentage;
+            if (gradientFactor <= 0.5) {
+              percentage = gradientFactor / 0.5;
+              color = mix(colorLow, colorMid, percentage);
+            } else {
+              percentage = (gradientFactor - 0.5) / 0.5;
+              color = mix(colorMid, colorHigh, percentage);
+            }
+            vec4 diffuseColor = vec4(color, opacity);
+          `
+        )
+        this._treeColorShaders.push(s)
+        modifyShaderWithFog(s)
+      }
+      this._treeGenerator.updateTreeAtIndex(
+        i,
+        0,
+        treeMaterial,
+        this._treeDebugMaterial
+      )
+    }
 
     const treeGroupMiddleX = this._treeGenerator.computeMiddleX()
 
@@ -480,29 +487,19 @@ export class SpaceColonizationTool extends VisualizationTool {
     textParams: Array<ITextDataParameter>
   }): void {
     for (const vizParam of data.vizParams) {
+      const treeColorValue = 1 - vizParam.value
+      console.log('TREE_SHADER', this._treeColorShaders)
       if (vizParam.name === 'no2') {
-        this._treeGenerator.updateTreeAtIndex(
-          0,
-          vizParam.value,
-          this._treeMaterial,
-          this._treeDebugMaterial
-        )
+        this._treeGenerator.updateTreeAtIndex(0, vizParam.value)
+        this._treeColorShaders[0].uniforms.gradientFactor.value = treeColorValue
       }
       if (vizParam.name === 'o3') {
-        this._treeGenerator.updateTreeAtIndex(
-          1,
-          vizParam.value,
-          this._treeMaterial,
-          this._treeDebugMaterial
-        )
+        this._treeGenerator.updateTreeAtIndex(1, vizParam.value)
+        this._treeColorShaders[1].uniforms.gradientFactor.value = treeColorValue
       }
       if (vizParam.name === 'pm10') {
-        this._treeGenerator.updateTreeAtIndex(
-          2,
-          vizParam.value,
-          this._treeMaterial,
-          this._treeDebugMaterial
-        )
+        this._treeGenerator.updateTreeAtIndex(2, vizParam.value)
+        this._treeColorShaders[2].uniforms.gradientFactor.value = treeColorValue
       }
     }
   }
