@@ -1,6 +1,5 @@
 <template>
   <div class="visualization relative">
-    <button class="absolute top-0 left-1/2 w-5 h-5" @click="play">Play</button>
     <canvas ref="canvas" class="block w-full h-full" />
     <VizDataInfo class="absolute top-4 left-4 w-52" />
   </div>
@@ -9,7 +8,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import { mapState, mapGetters } from 'vuex'
-import { SpaceColonizationTool } from '~/SpaceColonizationGenerator/SpaceColonization/SpaceColonization'
+import { SpaceColonizationTool } from '~/SpaceColonizationGenerator/spaceColonizationTool'
 import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
 import { StoreModule } from '~/store/store-modules'
 import VisualizationTool from '~/model/visualizationTool/visualizationTool'
@@ -26,6 +25,8 @@ export default Vue.extend({
     ...mapState('global', ['dataMode', 'vizDebugActive']),
     ...mapGetters('global', {
       dataTransferState: GlobalStoreGetter.GET_DATA_TRANSFER_STATE,
+      fileExportState: GlobalStoreGetter.GET_EXPORT_STATE,
+      generateState: GlobalStoreGetter.GET_GENERATE_STATE,
       liveParams: GlobalStoreGetter.GET_LIVE_PARAMS,
     }),
   },
@@ -34,7 +35,6 @@ export default Vue.extend({
       this.viz.debugMode = newVal
     },
     dataTransferState(newVal) {
-      console.log('TRANSFER', newVal)
       if (newVal === true) {
         const newVizParams = this.$store.getters[
           `${StoreModule.GLOBAL}/${GlobalStoreGetter.GET_USED_VIZ_PARAMS_NUMERIC}`
@@ -50,10 +50,22 @@ export default Vue.extend({
     },
     liveParams: {
       handler(newVal) {
-        console.log('WTF', newVal)
         this.viz.onNewLiveParams(newVal)
       },
       deep: true,
+    },
+    fileExportState(newVal) {
+      if (newVal === true) {
+        const newTab = window.open()
+        if (newTab) {
+          newTab.document.body.innerHTML = `<img src="${this.viz.getScreenshot()}" />`
+        }
+      }
+    },
+    generateState(newVal) {
+      if (newVal === true) {
+        this.viz.generateFullyRenderedContent()
+      }
     },
   },
   mounted() {
@@ -70,7 +82,6 @@ export default Vue.extend({
     saveAvailableParametersToStore(): void {
       const availableParams = this.viz.getAvailableParameters()
       const availableLiveParams = this.viz.getAvailableLiveParameters()
-      console.log('LIVEPARAMS', availableLiveParams)
       this.$store.commit(
         `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VIZ_PARAMS}`,
         availableParams
@@ -79,9 +90,6 @@ export default Vue.extend({
         `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_LIVE_PARAMS}`,
         availableLiveParams
       )
-    },
-    play() {
-      this.viz.play()
     },
   },
 })

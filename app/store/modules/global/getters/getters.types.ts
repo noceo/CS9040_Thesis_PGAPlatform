@@ -8,6 +8,8 @@ import { ILiveVizParameter } from '~/model/ILiveVizParameter'
 
 export enum GlobalStoreGetter {
   GET_FILE_STATE = 'GET_FILE_STATE',
+  GET_EXPORT_STATE = 'GET_EXPORT_STATE',
+  GET_GENERATE_STATE = 'GET_GENERATE_STATE',
   GET_MAPPING_MODAL_STATE = 'GET_MAPPING_MODAL_STATE',
   GET_VIZ_DEBUG_STATE = 'GET_VIZ_DEBUG_STATE',
   GET_DATA_TRANSFER_STATE = 'GET_DATA_TRANSFER_STATE',
@@ -33,6 +35,7 @@ export enum GlobalStoreGetter {
 export type Getters = {
   // global getters get defined here
   [GlobalStoreGetter.GET_FILE_STATE](state: IGlobalState): boolean
+  [GlobalStoreGetter.GET_EXPORT_STATE](state: IGlobalState): boolean
   [GlobalStoreGetter.GET_MAPPING_MODAL_STATE](state: IGlobalState): boolean
 
   [GlobalStoreGetter.GET_DATA_PARAMS_NUMERIC](

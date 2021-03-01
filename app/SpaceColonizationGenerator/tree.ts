@@ -1,6 +1,7 @@
 import {
   BufferGeometry,
   Float32BufferAttribute,
+  Group,
   Material,
   Mesh,
   Points,
@@ -13,10 +14,10 @@ import { RBush3D } from 'rbush-3d'
 import { Attractor } from './attractor'
 import { BranchNode, NeighbourSearchObject } from './branchNode'
 
+/**
+ * Represents a tree instance
+ */
 export class Tree {
-  // private _attractorSegments: Array<Array<Attractor>>
-  // private _attractorGeometries: Array<BufferGeometry>
-  // private _branches: Array<BranchNode>
   isCreated: boolean
   material: Material
   debugMaterial: Material
@@ -36,6 +37,7 @@ export class Tree {
   private _branchMeshes: Array<Mesh>
   private _drawRange: number
   private _branchDetail: number
+  private _meshGroup
 
   constructor(
     scene: Scene,
@@ -51,7 +53,7 @@ export class Tree {
     this._position = position
     this._root = new BranchNode(null, position, new Vector3(0, 1, 0), 4)
     this._minDistance = 5
-    this._maxDistance = 20
+    this._maxDistance = 30
     this._attractors = []
     attractors.forEach((attractor) => {
       this._attractors.push(
@@ -68,17 +70,14 @@ export class Tree {
     this._branchDetail = branchDetail
     this.material = material
     this.debugMaterial = debugMaterial
-    // if (shaderModifier) {
-    // this._branchMaterial.onBeforeCompile = shaderModifier
-    // }
+    this._meshGroup = new Group()
     this.init()
   }
 
+  /**
+   * Builds the tree with the given parameters of the constructor
+   */
   init(): void {
-    // const randomPoints = randomPointsInSphere(30, 10)
-    // this.generateAttractorSegment(randomPoints, new Vector3(0, 50, 0))
-    this.generateAttractors()
-    // add branches from root until it reaches the first attractor's min range
     this._areaLookUp.insert(this._root)
     this._rootBranch = [this._root]
     this._branches.push(this._rootBranch)
@@ -100,24 +99,22 @@ export class Tree {
         }
       }
       if (!foundNearAttractor) {
-        currentNode = currentNode.nextNode()
+        currentNode = currentNode.nextNode(false)
         this._rootBranch.push(currentNode)
         this._areaLookUp.insert(currentNode)
       }
     }
 
-    for (let i = 0; i < 100; i++) {
-      this.grow()
+    // calculate tree
+    let isGrowing = true
+    let i = 0
+    while (isGrowing && i < 50) {
+      isGrowing = this.grow()
+      i++
     }
 
-    // calculate tree
-    // let isGrowing = true
-    // while (isGrowing) {
-    //   isGrowing = this.grow()
-    // }
-
     // create mesh for each branch and set initial drawRange to 0
-    for (let j = 0, r = 100; j < this._branches.length; j++, r--) {
+    for (let j = 0, r = 100; j < this._branches.length; j++, r - 1) {
       const branch = this._branches[j]
       const vertices: Array<Vector3> = []
       branch.forEach((branchNode) => {
@@ -134,14 +131,16 @@ export class Tree {
         this._branchGeometries.push(geometry)
       }
     }
-    console.log(this._branches)
-    console.log(this._branchGeometries)
+    this.generateAttractors()
+    this._scene.add(this._meshGroup)
     this.isCreated = true
   }
 
-  grow(): boolean {
+  /**
+   * Calculates the anchor points for each iteration
+   */
+  private grow(): boolean {
     if (this._attractors.length === 0) {
-      console.log('NO ATTRACTORS')
       return false
     }
     for (let i = 0; i < this._attractors.length; i++) {
@@ -183,7 +182,6 @@ export class Tree {
     for (let x = this._attractors.length - 1; x >= 0; x--) {
       if (this._attractors[x].reached) {
         this._attractors.splice(x, 1)
-        console.log('ATTRACTOR DELETED')
       }
     }
 
@@ -199,7 +197,6 @@ export class Tree {
           // create new branch if there is a parent with more than 1 child
           if (newNode.parent !== null) {
             if (newNode.parent.childCount > 1) {
-              // console.log('NODE', newNode.pos.x, newNode.pos.y, newNode.pos.z)
               const newBranchRootNode = _.cloneDeep(newNode.parent)
               newBranchRootNode.childCount = 0
               newBranchRootNode.reset()
@@ -218,8 +215,7 @@ export class Tree {
     return true
   }
 
-  generateAttractors(): void {
-    // create attractor points
+  private generateAttractors(): void {
     const attractorGeometry = new BufferGeometry()
     const positions: Array<number> = []
     this._attractors.forEach((attractor) => {
@@ -245,11 +241,9 @@ export class Tree {
     ringSegments: number
   ): Mesh | undefined {
     if (midVertices.length < 2) {
-      console.log('Not enough mid vertices (segments)')
       return
     }
     if (ringSegments < 3) {
-      console.log('Too less detail')
       return
     }
 
@@ -341,7 +335,7 @@ export class Tree {
     // })
     const mesh = new Mesh(geometry, this.material)
     this._branchMeshes.push(mesh)
-    this._scene.add(mesh)
+    this._meshGroup.add(mesh)
     return mesh
   }
 
@@ -441,19 +435,16 @@ export class Tree {
   }
 
   removeFromScene(): void {
-    this._branchMeshes.forEach((geometry) => {
-      console.log('REMOVE', geometry)
-      this._scene.remove(geometry)
+    this._scene.remove(this._meshGroup)
+    this._branchGeometries.forEach((geometry) => {
+      geometry.dispose()
     })
+    // mesh.geometry.dispose()
     if (this._attractorSystem) {
       this._scene.remove(this._attractorSystem)
+      this._attractorSystem.geometry.dispose()
     }
   }
-
-  // increaseDrawRangeOfBranch(index: number): void {
-  //   const geometry = this._branchGeometries[index]
-  //   geometry.setDrawRange(0, geometry.drawRange.count + 1 * this._branchDetail)
-  // }
 
   private getLookUpItem(x: number, y: number, z: number) {
     return {

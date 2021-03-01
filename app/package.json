@@ -10,7 +10,8 @@
     "lint:js": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "lint:style": "stylelint **/*.{vue,css} --ignore-path .gitignore",
     "lint": "npm run lint:js && npm run lint:style",
-    "test": "jest"
+    "test": "jest",
+    "typedoc": "typedoc --options ./typedoc.json"
   },
   "dependencies": {
     "@nuxt/typescript-runtime": "^2.0.0",
@@ -64,6 +65,7 @@
     "stylelint-config-standard": "^20.0.0",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.2",
     "ts-jest": "^26.4.1",
+    "typedoc": "^0.20.28",
     "vue-jest": "^3.0.4"
   }
 }

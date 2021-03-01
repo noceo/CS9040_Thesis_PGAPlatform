@@ -21,6 +21,10 @@ export class NotificationService implements INotificationService {
     this._notificationDuration = notificationDuration
   }
 
+  /**
+   * Send success notification
+   * @param notification Notification
+   */
   success(notification: INotification): void {
     Vue.notify({
       ...notification,
@@ -30,6 +34,10 @@ export class NotificationService implements INotificationService {
     })
   }
 
+  /**
+   * Send error notification
+   * @param notification Notification
+   */
   error(notification: INotification): void {
     Vue.notify({
       ...notification,
@@ -39,6 +47,10 @@ export class NotificationService implements INotificationService {
     })
   }
 
+  /**
+   * Send alert notification
+   * @param notification Notification
+   */
   alert(notification: INotification): void {
     Vue.notify({
       ...notification,
@@ -48,6 +60,10 @@ export class NotificationService implements INotificationService {
     })
   }
 
+  /**
+   * Send info notification
+   * @param notification Notification
+   */
   info(notification: INotification): void {
     Vue.notify({
       ...notification,
@@ -57,6 +73,10 @@ export class NotificationService implements INotificationService {
     })
   }
 
+  /**
+   * Send standard success notification
+   * @param notification Notification
+   */
   defaultSuccess(): void {
     Vue.notify({
       group: 'all',
@@ -67,6 +87,10 @@ export class NotificationService implements INotificationService {
     })
   }
 
+  /**
+   * Send standard error notification
+   * @param notification Notification
+   */
   defaultError(): void {
     Vue.notify({
       group: 'all',

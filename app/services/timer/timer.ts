@@ -14,6 +14,11 @@ export class Timer implements ITimer {
     this._listeners = { tick: [], stop: [] }
   }
 
+  /**
+   * Let the given listener function subscribe to a given event of this instance
+   * @param eventName
+   * @param listener
+   */
   on<K extends keyof ICountdownEvents>(
     eventName: K,
     listener: ICountdownEvents[K]
@@ -21,6 +26,11 @@ export class Timer implements ITimer {
     this._listeners[eventName].push(listener)
   }
 
+  /**
+   * Let the given listener function unsubscribe to a given event of this instance
+   * @param eventName
+   * @param listener
+   */
   off<K extends keyof ICountdownEvents>(
     eventName: K,
     listener: ICountdownEvents[K]
@@ -32,6 +42,9 @@ export class Timer implements ITimer {
     }
   }
 
+  /**
+   * Start timer tick
+   */
   start() {
     if (this._timeToNextTick) {
       const tick = () => {
@@ -43,12 +56,18 @@ export class Timer implements ITimer {
     }
   }
 
+  /**
+   * Stop timer tick
+   */
   stop() {
     if (this._timer) {
       clearInterval(this._timer)
     }
   }
 
+  /**
+   * Reset timer
+   */
   reset() {
     this.stop()
     this._timeStep = 0

@@ -7,8 +7,8 @@ import { ITextDataParameter } from '~/model/ITextDataParameter'
 import { ILiveVizParameter } from '~/model/ILiveVizParameter'
 
 export enum DataMode {
-  STATIC = 'STATIC',
   LIVE = 'LIVE',
+  STATIC = 'STATIC',
 }
 
 export interface IStoreDataParams {
@@ -32,6 +32,8 @@ export interface IStoreDataConnections {
 export interface IGlobalState {
   // here all properties that belong to the global state get defined
   fileExists: boolean
+  exportFile: boolean
+  generateStatic: boolean
   mappingModalOpened: boolean
   dataMode: DataMode
   dataParams: IStoreDataParams

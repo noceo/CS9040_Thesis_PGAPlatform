@@ -62,7 +62,6 @@ export default Vue.extend({
       // Use traditional 'for loops' for IE 11
       mutations.forEach((mutation: any) => {
         if (mutation.type === 'childList') {
-          console.warn('NODE ADDED')
           configArea.style.maxHeight = `${configArea.scrollHeight}px`
         }
       })

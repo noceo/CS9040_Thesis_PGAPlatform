@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
 import Vue from 'vue'
-import { IFileParser } from '../fileParserService/FileParser.types'
+import { IFileParser } from '../fileParserService/IFileParser'
 import { IParseError } from '../fileParserService/IParseError'
 import { INotificationService } from '../notificationService/notificationService.types'
 import { IParseResult } from '../fileParserService/IParseResult'
@@ -14,7 +14,6 @@ import { StoreModule } from '~/store/store-modules'
 import { generateID } from '~/model/helpers/idGenerator'
 import { INumericDataParameter } from '~/model/INumericDataParameter'
 import { IDataParameter } from '~/model/IDataParameter'
-import { IVizParameter } from '~/model/IVizParameter'
 import { ParamMappingType } from '~/model/ParamMappingType'
 import { IMappingFunctionCollection } from '~/model/IMappingFunctionCollection'
 import { GlobalStoreGetter } from '~/store/modules/global/getters/getters.types'
@@ -69,6 +68,11 @@ export class DataManager implements IDataManager {
     this.addMutationHandlers()
   }
 
+  /**
+   * Processes a given file. If processing is successful, data is saved to the store
+   * @param file
+   * @param config A parser configuration
+   */
   processNewFile(file: File, config: object): Promise<any> {
     return new Promise((resolve, reject) => {
       const onSuccess = (result: IParseResult<any>, file: File): void => {
@@ -80,7 +84,6 @@ export class DataManager implements IDataManager {
         if (result.meta.fields) {
           this.createDataParams(result.meta.fields)
           this._data = result.data
-          console.warn(this._dataParams)
           resolve({ result, file })
         }
         reject(new Error('Data Fields not readable'))
@@ -103,8 +106,10 @@ export class DataManager implements IDataManager {
     })
   }
 
+  /**
+   * Starts the data update cycle
+   */
   startDataPropagation(): void {
-    console.log('VIZ_START')
     store.commit(
       `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VISUALIZATION_ACTIVE}`,
       true
@@ -113,8 +118,10 @@ export class DataManager implements IDataManager {
     this._timer.start()
   }
 
+  /**
+   * Stops the data update cycle
+   */
   stopDataPropagation(): void {
-    console.log('VIZ_STOP')
     store.commit(
       `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_VISUALIZATION_ACTIVE}`,
       false
@@ -123,31 +130,13 @@ export class DataManager implements IDataManager {
     this._timer.stop()
   }
 
-  onMappingChanged(
-    dataParam: IDataParameter,
-    vizParam: IVizParameter,
-    mappingFunction: ParamMappingType
-  ): void {
-    // connection already exists
-    if (dataParam.dataConnectionId !== '') {
-      store.commit(
-        `${StoreModule.GLOBAL}/${GlobalStoreMutation.UPDATE_DATA_CONNECTION}`,
-        { dataParamId: dataParam.id, vizParamId: vizParam.id, mappingFunction }
-      )
-      return
-    }
-
-    // connection does not exist / create new connection
-    store.commit(
-      `${StoreModule.GLOBAL}/${GlobalStoreMutation.ADD_DATA_CONNECTION}`,
-      { dataParamId: dataParam.id, vizParamId: vizParam.id, mappingFunction }
-    )
-  }
-
+  /**
+   * Creates objects for each data parameter to save to the store
+   * @param fileHeaders List of parameter names
+   */
   private createDataParams(fileHeaders: Array<string>): void {
     const numericDataParams: Array<INumericDataParameter> = []
     const textDataParams: Array<ITextDataParameter> = []
-    console.log(fileHeaders)
     const headerStringRegex = /^.*_(string)$/
     const headerNumberRegex = /^.*_(number)_(0|-?[1-9][0-9]{0,3})_(0|-?[1-9][0-9]{0,3})$/
     for (const header of fileHeaders) {
@@ -188,6 +177,9 @@ export class DataManager implements IDataManager {
     this._dataParams = [...numericDataParams, ...textDataParams]
   }
 
+  /**
+   * Add handlers for store mutations concerning changes of data connections
+   */
   private addMutationHandlers(): void {
     store.subscribe((mutation: { type: string; payload: IDataConnection }) => {
       switch (mutation.type) {
@@ -198,7 +190,6 @@ export class DataManager implements IDataManager {
           const vizParam = store.getters[
             `${StoreModule.GLOBAL}/${GlobalStoreGetter.GET_VIZ_PARAM_NUMERIC_BY_ID}`
           ](mutation.payload.vizParamId)
-          console.log('VIZ_PARAM', vizParam, mutation.payload.vizParamId)
           const newDataConnection = {
             id: mutation.payload.id,
             inputParam: dataParam,
@@ -206,11 +197,9 @@ export class DataManager implements IDataManager {
             outputParam: vizParam,
           }
           this._dataConnections[mutation.payload.id] = newDataConnection
-          console.log('ADD', this._dataConnections)
           break
         }
         case `${StoreModule.GLOBAL}/${GlobalStoreMutation.REMOVE_DATA_CONNECTION}`: {
-          console.log('REMOVE_CONNECTION', mutation)
           const foundConnectionId = Object.keys(this._dataConnections).find(
             (connectionId) => connectionId === mutation.payload.id
           )
@@ -223,15 +212,14 @@ export class DataManager implements IDataManager {
     })
   }
 
-  private getInitialDataConnections(): void {}
-
+  /**
+   * Writes the updates parameters to the store
+   */
   private writeUpdatedValuesToStore(): void {
-    console.log('wrote new data to store', this._dataConnections)
     if (!this._data) {
       return
     }
     // set new dataParamValues
-    console.log(this._data[this._currentDataIndex])
     const currentDataRow = this._data[this._currentDataIndex]
     const numberRegex = /^((0[.|,]\d*)|(([1-9]{1}\d*[.|,]\d*))|(0|[1-9]*))$/
     for (const dataParam of Object.entries(currentDataRow)) {
@@ -252,7 +240,6 @@ export class DataManager implements IDataManager {
             { name: paramName, value: parsedValue }
           )
         }
-        console.log('updated', paramName, parsedValue)
       }
     }
     if (this._currentDataIndex > this._data.length - 1) {
@@ -263,7 +250,6 @@ export class DataManager implements IDataManager {
 
     // update all mapped vizParams
     for (const dataConnection of Object.values(this._dataConnections)) {
-      console.log(dataConnection)
       const inputParam = dataConnection.inputParam
       const mappingFunction = this._mappingFunctions[dataConnection.mappingType]
       const outputParam = dataConnection.outputParam
@@ -288,7 +274,6 @@ export class DataManager implements IDataManager {
         newVizParam
       )
     }
-    console.log('ALL PARAMS CHANGED')
     store.commit(
       `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_DATA_TRANSFER_STATE}`,
       true

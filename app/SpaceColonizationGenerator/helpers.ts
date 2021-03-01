@@ -1,5 +1,10 @@
 import { Vector3 } from 'three'
 
+/**
+ * Creates a given amount of 3D points in shape of a cube
+ * @param amount Amount of points
+ * @param sideLength Side length of the created cube
+ */
 export function randomPointsInCube(
   amount: number,
   sideLength: number = 100
@@ -16,6 +21,11 @@ export function randomPointsInCube(
   return points
 }
 
+/**
+ * Creates a given amount of 3D points in shape of a sphere
+ * @param amount Amount of points
+ * @param radius Radius of the created sphere
+ */
 export function randomPointsInSphere(
   amount: number,
   radius: number
@@ -35,6 +45,9 @@ export function randomPointsInSphere(
   return points
 }
 
+/**
+ * Maps the given value linearly from the original range to a destination range
+ */
 export function mapParam(
   param: number,
   orgRangeStart: number,

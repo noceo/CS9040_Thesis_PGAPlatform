@@ -1,0 +1,11 @@
+{
+  "entryPoints": [
+    "./components",
+    "./IoC",
+    "./model",
+    "./services",
+    "./SpaceColonizationGenerator",
+    "./store"
+  ],
+  "out": "doc"
+}

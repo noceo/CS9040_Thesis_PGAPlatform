@@ -124,7 +124,6 @@ export default Vue.extend({
       let option = optionValue
       switch (this.optionType) {
         case 'object': {
-          console.log('ObjectSelect')
           const options: Array<Option> = this.options as Array<Option>
           option = options.find(
             (element: Option) => element.name === optionValue

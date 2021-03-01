@@ -1,24 +1,38 @@
 <template>
   <div class="export">
-    <BaseSelect
-      id="test"
-      copy="Export Format"
-      :options="['png', 'svg']"
-      :capitalize="false"
-      active-option=""
+    <BaseButton
+      copy="Export"
+      type="primary"
+      :disabled="!isExportable"
+      @click="onClick"
     />
-    <BaseButton copy="Export" type="primary" :disabled="!isExportable" />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
+import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
+import { StoreModule } from '~/store/store-modules'
 export default Vue.extend({
   name: 'Export',
   data() {
     return {
       isExportable: true,
     }
+  },
+  methods: {
+    onClick(): void {
+      this.$store.commit(
+        `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_EXPORT_STATE}`,
+        true
+      )
+      Vue.nextTick(() => {
+        this.$store.commit(
+          `${StoreModule.GLOBAL}/${GlobalStoreMutation.SET_EXPORT_STATE}`,
+          false
+        )
+      })
+    },
   },
 })
 </script>

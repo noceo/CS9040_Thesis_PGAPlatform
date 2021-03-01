@@ -15,5 +15,5 @@ export interface IVisualizationTool {
   getAvailableParameters(): IStoreVizParams
   getAvailableLiveParameters(): IStoreLiveParams
   generateFullyRenderedContent(): void
-  play(): void
+  getScreenshot(): string
 }

@@ -70,7 +70,6 @@ export class TreeGenerator {
       }
       return
     }
-    console.log('NEW TREE AT INDEX', index, 'TREE ARRAY', this._trees)
     const existingTree = this._trees[index]
     existingTree.removeFromScene()
     this._trees[index] = this.generateNewTree(
@@ -105,15 +104,11 @@ export class TreeGenerator {
     position: Vector3,
     paramValue: number
   ): Array<Vector3> {
-    console.log(position)
     const crownSideLength = mapParam(paramValue, 0, 1, 20, 100)
-    console.log('crownSideLength', crownSideLength)
     const height = mapParam(paramValue, 0, 1, 30, 80)
-    console.log('height', height)
 
     // generate attractors and set to min height
     const attractorCount = mapParam(paramValue, 0, 1, 10, 200)
-    console.log('AttractorCount', attractorCount)
     const attractors = randomPointsInSphere(
       attractorCount,
       crownSideLength / 1.5

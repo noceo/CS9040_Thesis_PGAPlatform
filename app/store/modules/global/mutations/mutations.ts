@@ -18,6 +18,12 @@ export const mutations: MutationTree<IGlobalState> & Mutations = {
   [GlobalStoreMutation.SET_FILE_STATE](state, payload: boolean) {
     state.fileExists = payload
   },
+  [GlobalStoreMutation.SET_EXPORT_STATE](state, payload: boolean) {
+    state.exportFile = payload
+  },
+  [GlobalStoreMutation.SET_GENERATE_STATE](state, payload: boolean) {
+    state.generateStatic = payload
+  },
   [GlobalStoreMutation.SET_MAPPING_MODAL_STATE](state, payload: boolean) {
     state.mappingModalOpened = payload
   },
@@ -62,7 +68,6 @@ export const mutations: MutationTree<IGlobalState> & Mutations = {
     const foundDataParam = Object.values(state.dataParams.text).find(
       (dataParam) => dataParam.name === payload.name
     )
-    console.log('update', payload.value)
     if (foundDataParam) {
       state.dataParams.text[foundDataParam.id].value = payload.value
     }
@@ -121,7 +126,6 @@ export const mutations: MutationTree<IGlobalState> & Mutations = {
     state.dataParams.numeric[payload.dataParamId].dataConnectionId = payload.id
     let vizParam: any
     for (const vizParamCategory of Object.values(state.vizParams)) {
-      console.log(vizParamCategory)
       vizParam = Object.values(vizParamCategory).find(
         (param: any) => param.id === payload.vizParamId
       )

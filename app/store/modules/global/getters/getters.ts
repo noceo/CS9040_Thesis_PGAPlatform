@@ -12,6 +12,12 @@ export const getters: GetterTree<IGlobalState, IRootState> & Getters = {
   [GlobalStoreGetter.GET_FILE_STATE]: (state: IGlobalState) => {
     return state.fileExists
   },
+  [GlobalStoreGetter.GET_EXPORT_STATE]: (state: IGlobalState) => {
+    return state.exportFile
+  },
+  [GlobalStoreGetter.GET_GENERATE_STATE]: (state: IGlobalState) => {
+    return state.generateStatic
+  },
   [GlobalStoreGetter.GET_MAPPING_MODAL_STATE]: (state: IGlobalState) => {
     return state.mappingModalOpened
   },

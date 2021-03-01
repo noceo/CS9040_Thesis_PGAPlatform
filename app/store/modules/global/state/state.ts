@@ -3,8 +3,10 @@ import { IGlobalState, DataMode } from './state.types'
 export const state: IGlobalState = {
   // here all properties that belong to the global state get saved
   fileExists: false,
-  mappingModalOpened: true,
-  dataMode: DataMode.STATIC,
+  exportFile: false,
+  generateStatic: false,
+  mappingModalOpened: false,
+  dataMode: DataMode.LIVE,
   dataParams: {
     numeric: {},
     text: {},

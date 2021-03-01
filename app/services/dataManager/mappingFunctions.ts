@@ -1,5 +1,9 @@
 import { IMappingFunctionCollection } from '~/model/IMappingFunctionCollection'
 import { ParamMappingType } from '~/model/ParamMappingType.ts'
+
+/**
+ * A collection of mapping functions
+ */
 export const mappingFunctions: IMappingFunctionCollection = {
   [ParamMappingType.LINEAR](
     input: number,

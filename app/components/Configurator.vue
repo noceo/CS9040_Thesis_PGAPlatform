@@ -4,14 +4,19 @@
     class="configurator bg-gray-100 shadow-md overflow-y-auto"
   >
     <ConfiguratorModule headline="Data Browser">
-      <!-- Here content can be injected -->
       <DataBrowser />
     </ConfiguratorModule>
-    <ConfiguratorModule headline="Parameter Mapping">
+    <ConfiguratorModule v-if="dataMode === 'LIVE'" headline="Parameter Mapping">
       <ParameterMapping />
     </ConfiguratorModule>
-    <ConfiguratorModule headline="Live Parameter Controls">
+    <ConfiguratorModule
+      v-if="dataMode === 'LIVE'"
+      headline="Live Parameter Controls"
+    >
       <LiveParameterAdjusting />
+    </ConfiguratorModule>
+    <ConfiguratorModule v-if="dataMode !== 'LIVE'" headline="Static Generation">
+      <StaticGeneration />
     </ConfiguratorModule>
     <ConfiguratorModule headline="Export">
       <Export />
@@ -21,6 +26,8 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import { mapState } from 'vuex'
+
 export default Vue.extend({
   name: 'Configurator',
   props: {
@@ -34,6 +41,9 @@ export default Vue.extend({
     return {
       lastMousePositionX: 0 as number,
     }
+  },
+  computed: {
+    ...mapState('global', ['dataMode']),
   },
   mounted() {
     const configurator = this.$refs.configurator as HTMLElement

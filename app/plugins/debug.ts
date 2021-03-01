@@ -3,6 +3,9 @@ import { GlobalStoreGetter } from '~/store/modules/global/getters/getters.types'
 import { GlobalStoreMutation } from '~/store/modules/global/mutations/mutations.types'
 import { StoreModule } from '~/store/store-modules'
 
+/**
+ * Appends a global key listener to the documents body
+ */
 export default (context: Context) => {
   document.body.addEventListener('keydown', function (event) {
     if (event.ctrlKey && event.key === 'd') {

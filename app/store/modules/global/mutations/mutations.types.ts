@@ -12,6 +12,8 @@ import { ITextDataParameter } from '~/model/ITextDataParameter'
 
 export enum GlobalStoreMutation {
   SET_FILE_STATE = 'SET_FILE_STATE',
+  SET_EXPORT_STATE = 'SET_EXPORT_STATE',
+  SET_GENERATE_STATE = 'SET_GENERATE_STATE',
   SET_MAPPING_MODAL_STATE = 'SET_MAPPING_MODAL_STATE',
   SET_DATAMODE = 'SET_DATAMODE',
 
@@ -44,6 +46,8 @@ export type Mutations<S = IGlobalState> = {
     state: S,
     payload: boolean
   ): void
+  [GlobalStoreMutation.SET_EXPORT_STATE](state: S, payload: boolean): void
+  [GlobalStoreMutation.SET_GENERATE_STATE](state: S, payload: boolean): void
   [GlobalStoreMutation.SET_DATAMODE](state: S, payload: DataMode): void
   [GlobalStoreMutation.SET_VISUALIZATION_ACTIVE](
     state: S,

@@ -1,5 +1,8 @@
 import { Vector3 } from 'three'
 
+/**
+ * Interface for saving an object to the R-tree
+ */
 export interface NeighbourSearchObject {
   minX: number
   minY: number
@@ -9,6 +12,9 @@ export interface NeighbourSearchObject {
   maxZ: number
 }
 
+/**
+ * A branch node representing an anchor point of the tree skeleton
+ */
 export class BranchNode implements NeighbourSearchObject {
   private _parent: BranchNode | null
   private _pos: Vector3
@@ -49,11 +55,20 @@ export class BranchNode implements NeighbourSearchObject {
     this.maxZ = this._pos.z
   }
 
-  nextNode(): BranchNode {
+  /**
+   * Creates a next tree node that is influenced by the direction of this instance
+   */
+  nextNode(random: boolean = true): BranchNode {
     this._childCount++
-    // console.log('CHILDS', this._childCount)
     // add slightly more random dir for deterministic behavior
-    this._dir.add(new Vector3(0.001, 0, 0)).normalize()
+    this._dir.normalize()
+    if (random) {
+      const x = this._dir.x + Math.random() - 0.5
+      const y = this._dir.y + Math.random() - 0.5
+      const z = this._dir.z + Math.random() - 0.5
+      const randomVector = new Vector3(x, y, z).normalize()
+      this._dir.add(randomVector).normalize()
+    }
     const nextPos = this._pos.clone().addScaledVector(this._dir, this._length)
     return new BranchNode(
       this,
@@ -65,6 +80,9 @@ export class BranchNode implements NeighbourSearchObject {
     )
   }
 
+  /**
+   * Resets the instance direction and attractor count
+   */
   reset(): void {
     this._dir.copy(this._originalDir)
     this._attractorCount = 0

@@ -1,5 +1,8 @@
 import { Vector3 } from 'three'
 
+/**
+ * Attractor that influences a branch node
+ */
 export class Attractor extends Vector3 {
   private _reached: boolean
 

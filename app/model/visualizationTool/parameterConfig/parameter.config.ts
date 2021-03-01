@@ -9,7 +9,7 @@ const paramConfig: IParameterConfig = {
       value: 0,
     },
     {
-      name: 'o3',
+      name: 'co',
       min: 0,
       max: 1,
       value: 0,
@@ -21,13 +21,7 @@ const paramConfig: IParameterConfig = {
       value: 0,
     },
   ],
-  textParameters: [
-    // {
-    //   name: 'axiom',
-    //   regex: '/F+/',
-    //   value: '',
-    // },
-  ],
+  textParameters: [],
   liveParameters: [
     {
       name: 'windForce',
